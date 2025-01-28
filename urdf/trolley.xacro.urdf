@@ -28,7 +28,7 @@
         </inertial>
         <visual>
             <geometry>
-                <cylinder radius="0.05" length="0.02" />
+                <cylinder radius="0.03" length="0.02" />
             </geometry>
             <material name="whtie">
                 <color rgba="1 1 1 1" />
@@ -56,7 +56,7 @@
         </inertial>
         <visual>
             <geometry>
-                <cylinder radius="0.05" length="0.02" />
+                <cylinder radius="0.03" length="0.02" />
             </geometry>
             <material name="whtie">
                 <color rgba="1 1 1 1" />
@@ -84,7 +84,7 @@
         </inertial>
         <visual>
             <geometry>
-                <cylinder radius="0.05" length="0.02" />
+                <cylinder radius="0.03" length="0.02" />
             </geometry>
             <material name="whtie">
                 <color rgba="1 1 1 1" />
