@@ -1,11 +1,13 @@
-<robot name="omnidirectional_robot">
+<robot name="omnidirectional_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <!-- ベースリンク -->
     <link name="base_link">
         <visual>
             <geometry>
                 <cylinder radius="0.15" length="0.02" />
             </geometry>
-            <material name="gray" />
+            <material name="gray">
+                <color rgba="0.2 0.2 0.2 1" />
+            </material>
         </visual>
         <collision>
             <geometry>
@@ -28,7 +30,9 @@
             <geometry>
                 <cylinder radius="0.05" length="0.02" />
             </geometry>
-            <material name="white" />
+            <material name="whtie">
+                <color rgba="1 1 1 1" />
+            </material>
         </visual>
         <collision>
             <geometry>
@@ -43,7 +47,7 @@
         <child link="wheel_1" />
         <axis xyz="0.0 0.0 1.0" />
     </joint>
-    
+
     <link name="wheel_2">
         <inertial>
             <mass value="2" />
@@ -53,7 +57,9 @@
             <geometry>
                 <cylinder radius="0.05" length="0.02" />
             </geometry>
-            <material name="white" />
+            <material name="whtie">
+                <color rgba="1 1 1 1" />
+            </material>
         </visual>
         <collision>
             <geometry>
@@ -63,7 +69,7 @@
         </collision>
     </link>
     <joint name="wheel_2_joint" type="continuous">
-        <origin xyz="-0.106 0.106 0" rpy="1.57 0.0 0.785398" />
+        <origin xyz="-0.075 0.12990381056 0" rpy="1.57 0.0 0.5235987755983" />
         <parent link="base_link" />
         <child link="wheel_2" />
         <axis xyz="0.0 0.0 1.0" />
@@ -78,7 +84,9 @@
             <geometry>
                 <cylinder radius="0.05" length="0.02" />
             </geometry>
-            <material name="white" />
+            <material name="whtie">
+                <color rgba="1 1 1 1" />
+            </material>
         </visual>
         <collision>
             <geometry>
@@ -88,9 +96,57 @@
         </collision>
     </link>
     <joint name="wheel_3_joint" type="continuous">
-        <origin xyz="-0.106 -0.106 0" rpy="1.57 0.0 -0.785398" />
+        <origin xyz="-0.075 -0.12990381056 0" rpy="1.57 0.0 -0.5235987755983" />
         <parent link="base_link" />
         <child link="wheel_3" />
         <axis xyz="0.0 0.0 1.0" />
     </joint>
+
+    <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <parameters>/home/ros2/ros_ws/src/inrof2025_ros/config/jtc.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+        <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+
+        <joint name="wheel_1_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="wheel_2_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="wheel_3_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/> 
+        </joint>
+    </ros2_control>
+
+    <!-- <ros2_control name="GazeboSystem" type="system">
+        <hardware>gazebo_ros2_control/GazeboSystem</hardware>
+        <joint name="wheel_1_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="wheel_2_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="wheel_3_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <param name="initial_position">0.0</param>   
+        </joint>
+    </ros2_control> -->
+
 </robot>
