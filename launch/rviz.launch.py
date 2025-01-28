@@ -4,10 +4,13 @@ from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
+from launch.substitutions import LaunchConfiguration
 import os
 import xacro
 
 def generate_launch_description():
+
+    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
@@ -38,9 +41,16 @@ def generate_launch_description():
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'joint_state_broadcaster'],
         output='screen'
     )
-    joint_velocity_controller = ExecuteProcess(
+    load_joint_velocity_controller = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'velocity_controllers'],
         output='screen'
+    )
+
+    rviz_node = Node(
+        package="rviz2",
+        executable="rviz2",
+        name="rviz2",
+        output="log",
     )
 
     return LaunchDescription([
@@ -53,10 +63,11 @@ def generate_launch_description():
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=load_joint_state_controller,
-                on_exit=[joint_velocity_controller]
+                on_exit=[load_joint_velocity_controller]
             )
         ),
         gazebo,
         node_robot_state_publisher,
         spawn_entity,
+        rviz_node,
     ])
