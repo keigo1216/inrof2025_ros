@@ -69,7 +69,7 @@
         </collision>
     </link>
     <joint name="wheel_2_joint" type="continuous">
-        <origin xyz="-0.106 0.106 0" rpy="1.57 0.0 0.785398" />
+        <origin xyz="-0.075 0.12990381056 0" rpy="1.57 0.0 0.5235987755983" />
         <parent link="base_link" />
         <child link="wheel_2" />
         <axis xyz="0.0 0.0 1.0" />
@@ -96,7 +96,7 @@
         </collision>
     </link>
     <joint name="wheel_3_joint" type="continuous">
-        <origin xyz="-0.106 -0.106 0" rpy="1.57 0.0 -0.785398" />
+        <origin xyz="-0.075 -0.12990381056 0" rpy="1.57 0.0 -0.5235987755983" />
         <parent link="base_link" />
         <child link="wheel_3" />
         <axis xyz="0.0 0.0 1.0" />
