@@ -28,7 +28,7 @@
         </inertial>
         <visual>
             <geometry>
-                <cylinder radius="0.05" length="0.02" />
+                <cylinder radius="0.03" length="0.02" />
             </geometry>
             <material name="whtie">
                 <color rgba="1 1 1 1" />
@@ -42,7 +42,8 @@
         </collision>
     </link>
     <joint name="wheel_1_joint" type="continuous">
-        <origin xyz="0.15 0 0.0" rpy="1.57 0.0 1.57" />
+        <!-- <origin xyz="0.15 0 0.0" rpy="1.57 0.0 1.57" /> -->
+        <origin xyz="0.075 0.12990381056 0" rpy="1.57 0.0 -0.5235987755983" />
         <parent link="base_link" />
         <child link="wheel_1" />
         <axis xyz="0.0 0.0 1.0" />
@@ -55,7 +56,7 @@
         </inertial>
         <visual>
             <geometry>
-                <cylinder radius="0.05" length="0.02" />
+                <cylinder radius="0.03" length="0.02" />
             </geometry>
             <material name="whtie">
                 <color rgba="1 1 1 1" />
@@ -69,7 +70,8 @@
         </collision>
     </link>
     <joint name="wheel_2_joint" type="continuous">
-        <origin xyz="-0.075 0.12990381056 0" rpy="1.57 0.0 0.5235987755983" />
+        <origin xyz="-0.15 0 0.0" rpy="1.57 0.0 1.57" />
+        <!-- <origin xyz="-0.075 0.12990381056 0" rpy="1.57 0.0 0.5235987755983" /> -->
         <parent link="base_link" />
         <child link="wheel_2" />
         <axis xyz="0.0 0.0 1.0" />
@@ -82,7 +84,7 @@
         </inertial>
         <visual>
             <geometry>
-                <cylinder radius="0.05" length="0.02" />
+                <cylinder radius="0.03" length="0.02" />
             </geometry>
             <material name="whtie">
                 <color rgba="1 1 1 1" />
@@ -96,7 +98,7 @@
         </collision>
     </link>
     <joint name="wheel_3_joint" type="continuous">
-        <origin xyz="-0.075 -0.12990381056 0" rpy="1.57 0.0 -0.5235987755983" />
+        <origin xyz="0.075 -0.12990381056 0" rpy="1.57 0.0 -2.6179938779915" />
         <parent link="base_link" />
         <child link="wheel_3" />
         <axis xyz="0.0 0.0 1.0" />
