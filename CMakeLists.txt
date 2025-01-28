@@ -7,9 +7,23 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(gazebo_ros REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+function(custom_executable target)
+  add_executable(${target} src/${target}.cpp)
+  ament_target_dependencies(${target} 
+    "rclcpp"
+    "geometry_msgs"
+    "std_msgs"
+  )
+  install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
+endfunction()
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -24,8 +38,11 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch worlds models
+  DIRECTORY launch worlds models urdf config
   DESTINATION share/${PROJECT_NAME}
 )
+
+custom_executable(omuni_drive_node)
+custom_executable(example_omuni_drive_node)
 
 ament_package()
