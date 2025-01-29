@@ -101,8 +101,30 @@
         <origin xyz="0.075 -0.12990381056 0" rpy="1.57 0.0 -2.6179938779915" />
         <parent link="base_link" />
         <child link="wheel_3" />
-        <axis xyz="0.0 0.0 1.0" />
     </joint>
+
+    <!-- lidar settings -->
+    <link name="lidar_link">
+        <inertial>
+            <mass value="0.5" />
+            <inertia ixx="0.01" ixy="0.0" ixz="0" iyy="0.01" iyz="0" izz="0.01" />
+        </inertial>
+        <visual>
+            <geometry>
+                <cylinder radius="0.05" length="0.05" />
+            </geometry>
+            <material name="red">
+                <color rgba="1 0 0 0.7" />
+            </material>
+        </visual>
+    </link>
+
+    <joint name="lidar_joint" type="fixed">
+        <origin xyz="0.15 0 0" rpy="0 0 0" />
+        <parent link="base_link" />
+        <child link="lidar_link" />
+    </joint>
+
 
     <gazebo>
         <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
@@ -112,43 +134,23 @@
 
     <ros2_control name="GazeboSystem" type="system">
         <hardware>
-        <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
         </hardware>
 
         <joint name="wheel_1_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
+            <command_interface name="velocity" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
         </joint>
         <joint name="wheel_2_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
+            <command_interface name="velocity" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
         </joint>
         <joint name="wheel_3_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/> 
+            <command_interface name="velocity" />
+            <state_interface name="position" />
+            <state_interface name="velocity" />
         </joint>
     </ros2_control>
-
-    <!-- <ros2_control name="GazeboSystem" type="system">
-        <hardware>gazebo_ros2_control/GazeboSystem</hardware>
-        <joint name="wheel_1_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-        <joint name="wheel_2_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-        <joint name="wheel_3_joint">
-            <command_interface name="velocity"/>
-            <state_interface name="velocity"/>
-            <param name="initial_position">0.0</param>   
-        </joint>
-    </ros2_control> -->
-
 </robot>
