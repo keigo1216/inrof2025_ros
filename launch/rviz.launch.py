@@ -18,7 +18,7 @@ def generate_launch_description():
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-        # launch_arguments={"world": world}.items()
+        launch_arguments={"world": world}.items()
     )
     package_dir = get_package_share_directory("inrof2025_ros")
 
@@ -37,11 +37,12 @@ def generate_launch_description():
     spawn_entity = Node(
         package='gazebo_ros', executable='spawn_entity.py',
         arguments=['-topic', 'robot_description',
-                    '-entity', 'trolley',],
-                    # '-x', '0.20',
-                    # '-y', '0.20',
-                    # '-z', '5.0',
-                    # '-Y', '1.57',],
+                    '-entity', 'trolley',
+                    '-x', '0.20',
+                    '-y', '0.20',
+                    '-z', '5.0',
+                    '-Y', '1.57',
+                ],
         output='screen'
     )
 
