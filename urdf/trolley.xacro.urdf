@@ -172,6 +172,15 @@
         <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
             <parameters>/home/ros2/ros_ws/src/inrof2025_ros/config/jtc.yaml</parameters>
         </plugin>
+        <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+            <ros>
+                <remapping>odom:=odom</remapping>
+            </ros>
+            <frame_name>map</frame_name>
+            <body_name>base_link</body_name>
+            <update_rate>10.0</update_rate>
+            <always_on>true</always_on>
+        </plugin>
     </gazebo>
 
     <!-- ros2_control_settings -->
