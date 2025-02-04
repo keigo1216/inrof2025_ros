@@ -63,8 +63,6 @@ namespace omuni {
         private:
             void callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
                 // reference: https://t-semi.esa.io/posts/191
-                // それぞれの回転量からv_x, v_y, omegaを計算
-                
                 // angular velocity
                 std::float_t wheel_0_omega = 0.0;
                 std::float_t wheel_1_omega = 0.0;
@@ -106,6 +104,7 @@ namespace omuni {
                 theata_ += delta_theata;
                 RCLCPP_INFO(this->get_logger(), "x=%.2f, y=%.2f, theta=%.2f", x_, y_, theata_);
 
+
                 // create tf message (map -> base_footprint)
                 geometry_msgs::msg::TransformStamped transformStamped;
                 transformStamped.header.stamp = cur_time;
@@ -125,8 +124,6 @@ namespace omuni {
 
                 // broadcast tf
                 tf_broadcaster_->sendTransform(transformStamped);
-
-                // RCLCPP_INFO(this->get_logger(), "Subscribe wheel speeds: v_x=%.2f, v_y=%.2f, omega=%.2f", v_x_, v_y_, omega_);
             }
             
             rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr sub_;
@@ -149,9 +146,6 @@ namespace omuni {
             std::float_t sina2_a1, sina0_a2, sina1_a0, cosa0_cosa1, cosa1_cosa2, cosa2_cosa0, sina0_sina1, sina1_sina2, sina2_sina0, m;
     };
 }
-
-// #include <rclcpp_components/register_node_macro.hpp>
-// RCLCPP_COMPONENTS_REGISTER_NODE(omuni::Odometry);
 
 int main(int argc, char *argv[]) {
     rclcpp::init(argc, argv);
