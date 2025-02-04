@@ -31,8 +31,11 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
-        parameters=[params]
-    )
+        parameters=[
+            params,
+            {"use_sim_time": use_sim_time}
+        ]
+    ) 
 
     spawn_entity = Node(
         package='gazebo_ros', executable='spawn_entity.py',
@@ -60,6 +63,7 @@ def generate_launch_description():
         executable="rviz2",
         name="rviz2",
         output="log",
+        parameters=[{"use_sim_time": use_sim_time}]
     )
 
     return LaunchDescription([

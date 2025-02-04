@@ -32,16 +32,21 @@ class OmuniDriveNode: public rclcpp::Node {
             double v_x = msg->linear.x;
             double v_y = msg->linear.y;
             double omega = msg->angular.z;
+            RCLCPP_INFO(this->get_logger(), "Published wheel speeds: v1=%.2f, v2=%.2f, v3=%.2f", v_x, v_y, omega);
 
-            double v1 = (-v_x*v1sin_ + v_y*v1cos_ + R_*omega)/r_;
-            double v2 = (-v_x*v2sin_ + v_y*v2cos_ + R_*omega)/r_;
-            double v3 = (-v_x*v3sin_ + v_y*v3cos_ + R_*omega)/r_;
+            double v1 = -v_x*v1sin_ + v_y*v1cos_ + R_*omega;
+            double v2 = -v_x*v2sin_ + v_y*v2cos_ + R_*omega;
+            double v3 = -v_x*v3sin_ + v_y*v3cos_ + R_*omega;
+
+            double phi1 = v1/r_;
+            double phi2 = v2/r_;
+            double phi3 = v3/r_;
 
             auto msg_out = std_msgs::msg::Float64MultiArray();
-            msg_out.data = {v1, v2, v3};
+            msg_out.data = {phi1, phi2, phi3};
             pub_->publish(msg_out);
 
-            RCLCPP_INFO(this->get_logger(), "Published wheel speeds: v1=%.2f, v2=%.2f, v3=%.2f", v1, v2, v3);
+            RCLCPP_INFO(this->get_logger(), "Published wheel speeds: v1=%.2f, v2=%.2f, v3=%.2f, phi1=%.2f, phi2=%.2f, phi3=%.2f", v1, v2, v3, phi1, phi2, phi3);
         }
 
         rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr pub_;

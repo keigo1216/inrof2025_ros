@@ -11,6 +11,9 @@ find_package(gazebo_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -21,6 +24,9 @@ function(custom_executable target)
     "rclcpp"
     "geometry_msgs"
     "std_msgs"
+    "tf2_ros"
+    "sensor_msgs"
+    "nav_msgs"
   )
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
@@ -43,6 +49,7 @@ install(
 )
 
 custom_executable(omuni_drive_node)
+custom_executable(omuni_odometry)
 custom_executable(example_omuni_drive_node)
 
 ament_package()
