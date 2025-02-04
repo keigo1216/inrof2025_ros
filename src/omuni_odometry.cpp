@@ -1,14 +1,30 @@
 #include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 
 namespace omuni {
     class Odometry: public rclcpp::Node {
         public:
-            explicit Odometry(std::float_t r, std::float_t R): Node("omuni_odometry_frame_publisher") {
-                r_ = r;
-                R_ = R;
+            explicit Odometry(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
+                : Node("omuni_odometry_frame_publisher", options){
+                
+                this->declare_parameter<bool>("use_sim_time", false);
+
+                this->declare_parameter<double>("r", 0.03);
+                this->declare_parameter<double>("R", 0.15);
+                this->declare_parameter<double>("x", 0.0);
+                this->declare_parameter<double>("y", 0.0);
+                this->declare_parameter<double>("theata", 0.0);
+
+                RCLCPP_INFO(this->get_logger(), "Hello world");
+
+                r_ = this->get_parameter("r").as_double();
+                R_ = this->get_parameter("R").as_double();
+                x_ = this->get_parameter("x").as_double();
+                y_ = this->get_parameter("y").as_double();
+                theata_ = this->get_parameter("theata").as_double();
 
                 // declare paramters, default set to base_footprint
                 base_footprint_ = "base_footprint";
@@ -66,12 +82,49 @@ namespace omuni {
                 // convert to velocity
                 std::float_t v[3] = {r_*wheel_0_omega, r_*wheel_1_omega, r_*wheel_2_omega};
 
-                RCLCPP_INFO(this->get_logger(), "Subscribe wheel speeds: v1=%.2f, v2=%.2f, v3=%.2f", v[0], v[1], v[2]);
-
                 // convet to v_1, v_2, v_3 to v_x, v_y, omega
                 v_x_ = ((cosa1_cosa2)*v[0] + (cosa2_cosa0)*v[1] + (cosa0_cosa1)*v[2])/m;
                 v_y_ = ((sina1_sina2)*v[0] + (sina2_sina0)*v[1] + (sina0_sina1)*v[2])/m;
                 omega_ = ((sina2_a1)*v[0] + (sina0_a2)*v[1] + (sina1_a0)*v[2])/(R_*m);
+
+                rclcpp::Time cur_time = msg->header.stamp;
+                float dt = 0.0;
+                if (first_time_) {
+                    last_time_ = cur_time;
+                    first_time_ = false;
+                }
+                dt = (cur_time - last_time_).seconds();
+                last_time_ = cur_time;
+
+                float delta_x = (v_x_*std::cos(theata_) - v_y_*std::sin(theata_))*dt;
+                float delta_y = (v_x_*std::sin(theata_) + v_y_*std::cos(theata_))*dt;
+                float delta_theata = omega_*dt;
+
+                // update
+                x_ += delta_x;
+                y_ += delta_y;
+                theata_ += delta_theata;
+                RCLCPP_INFO(this->get_logger(), "x=%.2f, y=%.2f, theta=%.2f", x_, y_, theata_);
+
+                // create tf message (map -> base_footprint)
+                geometry_msgs::msg::TransformStamped transformStamped;
+                transformStamped.header.stamp = cur_time;
+                transformStamped.header.frame_id = "map";
+                transformStamped.child_frame_id = base_footprint_;
+                transformStamped.transform.translation.x = x_;
+                transformStamped.transform.translation.y = y_;
+                transformStamped.transform.translation.z = 0.0;
+
+                // caculate quaternion
+                tf2::Quaternion q;
+                q.setRPY(0, 0, theata_);
+                transformStamped.transform.rotation.x = q.x();
+                transformStamped.transform.rotation.y = q.y();
+                transformStamped.transform.rotation.z = q.z();
+                transformStamped.transform.rotation.w = q.w();
+
+                // broadcast tf
+                tf_broadcaster_->sendTransform(transformStamped);
 
                 // RCLCPP_INFO(this->get_logger(), "Subscribe wheel speeds: v_x=%.2f, v_y=%.2f, omega=%.2f", v_x_, v_y_, omega_);
             }
@@ -84,14 +137,25 @@ namespace omuni {
             std::double_t v_y_;
             std::double_t omega_;
 
+            // For caculating odometry
+            // TODO: initialize robot position
+            std::float_t x_;
+            std::float_t y_;
+            std::float_t theata_;
+            rclcpp::Time last_time_;
+            bool first_time_{true};
+
             std::float_t r_, R_;
             std::float_t sina2_a1, sina0_a2, sina1_a0, cosa0_cosa1, cosa1_cosa2, cosa2_cosa0, sina0_sina1, sina1_sina2, sina2_sina0, m;
     };
 }
 
+// #include <rclcpp_components/register_node_macro.hpp>
+// RCLCPP_COMPONENTS_REGISTER_NODE(omuni::Odometry);
+
 int main(int argc, char *argv[]) {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<omuni::Odometry>(0.03, 0.15));
+    rclcpp::spin(std::make_shared<omuni::Odometry>());
     rclcpp::shutdown();
     return 0;
 }

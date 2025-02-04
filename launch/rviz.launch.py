@@ -15,6 +15,16 @@ def generate_launch_description():
         get_package_share_directory("inrof2025_ros"), "worlds", "field.world"
     )
 
+    # robot parameters
+    r = 0.03
+    R = 0.15
+
+    # robot initial position
+    x = 0.20
+    y = 0.20
+    z = 5
+    theata = 1.57
+
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
@@ -41,10 +51,10 @@ def generate_launch_description():
         package='gazebo_ros', executable='spawn_entity.py',
         arguments=['-topic', 'robot_description',
                     '-entity', 'trolley',
-                    '-x', '0.20',
-                    '-y', '0.20',
-                    '-z', '5.0',
-                    '-Y', '1.57',
+                    '-x', str(x),
+                    '-y', str(y),
+                    '-z', str(z),
+                    '-Y', str(theata),
                 ],
         output='screen'
     )
@@ -66,6 +76,19 @@ def generate_launch_description():
         parameters=[{"use_sim_time": use_sim_time}]
     )
 
+    omuni_odometry_node = Node(
+        package='inrof2025_ros',
+        executable='omuni_odometry',
+        parameters=[{
+            "r": r,
+            "R": R,
+            "x": x,
+            "y": y,
+            "theata": theata
+        }],
+        output="log"
+    )
+
     return LaunchDescription([
         RegisterEventHandler(
             event_handler=OnProcessExit(
@@ -77,6 +100,12 @@ def generate_launch_description():
             event_handler=OnProcessExit(
                 target_action=load_joint_state_controller,
                 on_exit=[load_joint_velocity_controller]
+            )
+        ),
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=load_joint_velocity_controller,
+                on_exit=[omuni_odometry_node]
             )
         ),
         gazebo,
