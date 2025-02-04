@@ -9,9 +9,6 @@ namespace omuni {
         public:
             explicit Odometry(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
                 : Node("omuni_odometry_frame_publisher", options){
-                
-                this->declare_parameter<bool>("use_sim_time", false);
-
                 this->declare_parameter<double>("r", 0.03);
                 this->declare_parameter<double>("R", 0.15);
                 this->declare_parameter<double>("x", 0.0);
@@ -104,11 +101,10 @@ namespace omuni {
                 theata_ += delta_theata;
                 RCLCPP_INFO(this->get_logger(), "x=%.2f, y=%.2f, theta=%.2f", x_, y_, theata_);
 
-
-                // create tf message (map -> base_footprint)
+                // create tf message (odom -> base_footprint)
                 geometry_msgs::msg::TransformStamped transformStamped;
                 transformStamped.header.stamp = cur_time;
-                transformStamped.header.frame_id = "map";
+                transformStamped.header.frame_id = "odom";
                 transformStamped.child_frame_id = base_footprint_;
                 transformStamped.transform.translation.x = x_;
                 transformStamped.transform.translation.y = y_;
