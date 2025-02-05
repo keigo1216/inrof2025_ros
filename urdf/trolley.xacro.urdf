@@ -175,6 +175,14 @@
         </plugin>
     </gazebo>
 
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros>
+        <namespace>/gazebo</namespace>
+      </ros>
+
+      <update_rate>1.0</update_rate>
+    </plugin>
+
     <!-- ros2_control_settings -->
     <ros2_control name="GazeboSystem" type="system">
         <hardware>

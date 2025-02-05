@@ -3,20 +3,22 @@
 #include <tf2/LinearMath/Quaternion.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
 #include <nav_msgs/msg/odometry.hpp>
+#include <gazebo_msgs/msg/model_states.hpp>
 
 namespace omuni {
     class Odometry: public rclcpp::Node {
         public:
             explicit Odometry(const rclcpp::NodeOptions & options = rclcpp::NodeOptions())
                 : Node("omuni_odometry_frame_publisher", options){
+                this->declare_parameter<bool>("is_mapping", false);
+
                 this->declare_parameter<double>("r", 0.03);
                 this->declare_parameter<double>("R", 0.15);
                 this->declare_parameter<double>("x", 0.0);
                 this->declare_parameter<double>("y", 0.0);
                 this->declare_parameter<double>("theata", 0.0);
-
-                RCLCPP_INFO(this->get_logger(), "Hello world");
-
+                
+                is_mapping_ = this->get_parameter("is_mapping").as_bool();
                 r_ = this->get_parameter("r").as_double();
                 R_ = this->get_parameter("R").as_double();
                 x_ = this->get_parameter("x").as_double();
@@ -51,13 +53,47 @@ namespace omuni {
                 // Initialize the transform broadcaster
                 tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
 
-                sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
-                    "/joint_states",
-                    10,
-                    std::bind(&Odometry::callback, this, std::placeholders::_1)
-                );
+                if (is_mapping_) {
+                    sub_for_mapping_ = this->create_subscription<gazebo_msgs::msg::ModelStates>(
+                        "/gazebo/model_states",
+                        10,
+                        std::bind(&Odometry::callback_for_mapping, this, std::placeholders::_1)
+                    );
+                } else {
+                    sub_ = this->create_subscription<sensor_msgs::msg::JointState>(
+                        "/joint_states",
+                        10,
+                        std::bind(&Odometry::callback, this, std::placeholders::_1)
+                    );
+                }
             }
         private:
+            void callback_for_mapping(const gazebo_msgs::msg::ModelStates::SharedPtr msg) {
+                std::string target_model = "trolley";
+                auto it = std::find(msg->name.begin(), msg->name.end(), target_model);
+                if (it != msg->name.end()) {
+                    size_t index = std::distance(msg->name.begin(), it);
+                    rclcpp::Time cur_time = this->now();
+
+                    // create tf message (odom -> base_footprint)
+                    geometry_msgs::msg::TransformStamped transformStamped;
+                    transformStamped.header.stamp = cur_time;
+                    transformStamped.header.frame_id = "odom";
+                    transformStamped.child_frame_id = base_footprint_;
+                    transformStamped.transform.translation.x = msg->pose[index].position.x;
+                    transformStamped.transform.translation.y = msg->pose[index].position.y;
+                    transformStamped.transform.translation.z = 0.0;
+
+                    transformStamped.transform.rotation.x = msg->pose[index].orientation.x;
+                    transformStamped.transform.rotation.y = msg->pose[index].orientation.y;
+                    transformStamped.transform.rotation.z = msg->pose[index].orientation.z;
+                    transformStamped.transform.rotation.w = msg->pose[index].orientation.w;
+
+                    // broadcast tf
+                    tf_broadcaster_->sendTransform(transformStamped);
+                }
+            }
+
             void callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
                 // reference: https://t-semi.esa.io/posts/191
                 // angular velocity
@@ -122,7 +158,10 @@ namespace omuni {
                 tf_broadcaster_->sendTransform(transformStamped);
             }
             
+            bool is_mapping_;
+
             rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr sub_;
+            rclcpp::Subscription<gazebo_msgs::msg::ModelStates>::SharedPtr sub_for_mapping_;
             std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
             std::string base_footprint_;
 

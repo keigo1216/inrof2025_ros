@@ -84,7 +84,20 @@ def generate_launch_description():
             "R": R,
             "x": x,
             "y": y,
-            "theata": theata
+            "theata": theata,
+            "use_sim_time": use_sim_time,
+            "is_mapping": True,
+        }],
+        output="log"
+    )
+
+    omuni_drive_node = Node(
+        package="inrof2025_ros",
+        executable="omuni_drive_node",
+        parameters=[{
+            "r": r,
+            "R": R,
+            "use_sim_time": use_sim_time
         }],
         output="log"
     )
@@ -102,14 +115,10 @@ def generate_launch_description():
                 on_exit=[load_joint_velocity_controller]
             )
         ),
-        RegisterEventHandler(
-            event_handler=OnProcessExit(
-                target_action=load_joint_velocity_controller,
-                on_exit=[omuni_odometry_node]
-            )
-        ),
         gazebo,
         node_robot_state_publisher,
         spawn_entity,
         rviz_node,
+        omuni_odometry_node,
+        omuni_drive_node,
     ])
