@@ -47,6 +47,9 @@
             </geometry>
             <contact_coefficients mu="3" kp="1e+13" kd="1.0" />
         </collision>
+        <gazebo reference="wheel_1">
+            <mu2>0.0</mu2>
+        </gazebo>
     </link>
     <joint name="wheel_1_joint" type="continuous">
         <!-- <origin xyz="0.15 0 0.0" rpy="1.57 0.0 1.57" /> -->
@@ -75,6 +78,9 @@
             </geometry>
             <contact_coefficients mu="3" kp="1e+13" kd="1.0" />
         </collision>
+        <gazebo reference="wheel_1">
+            <mu2>0.0</mu2>
+        </gazebo>
     </link>
     <joint name="wheel_2_joint" type="continuous">
         <origin xyz="-0.15 0 0.0" rpy="1.57 0.0 1.57" />
@@ -103,6 +109,9 @@
             </geometry>
             <contact_coefficients mu="3" kp="1e+13" kd="1.0" />
         </collision>
+        <gazebo reference="wheel_1">
+            <mu2>0.0</mu2>
+        </gazebo>
     </link>
     <joint name="wheel_3_joint" type="continuous">
         <origin xyz="0.075 -0.12990381056 0" rpy="1.57 0.0 -2.6179938779915" />

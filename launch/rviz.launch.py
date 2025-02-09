@@ -32,7 +32,7 @@ def generate_launch_description():
     )
     package_dir = get_package_share_directory("inrof2025_ros")
 
-    xacro_file = os.path.join(package_dir, "urdf", "trolley.xacro.urdf")
+    xacro_file = os.path.join(package_dir, "urdf", "robot_for_gazebo.xacro")
     doc = xacro.parse(open(xacro_file))
     xacro.process_doc(doc)
     params = {'robot_description': doc.toxml()}
