@@ -16,7 +16,7 @@ def generate_launch_description():
     x = 0.20
     y = 0.20
     z = 5
-    theata = 1.57
+    theata = -1.57
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     package_dir = get_package_share_directory("inrof2025_ros")
