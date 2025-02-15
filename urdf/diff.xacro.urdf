@@ -123,11 +123,47 @@
     </visual>
   </link>
   <joint name="lidar_joint" type="fixed">
-    <origin xyz="-0.075 0.0 0.0" rpy="0.0 0.0 0.157"/>
+    <origin xyz="-0.080 0.0 0.0" rpy="0.0 0.0 0.0"/>
     <parent link="base_link"/>
     <child link="lidar_link"/>
     <axis xyz="0.0 0.0 1.0"/>
   </joint>
+
+  <gazebo reference="lidar_link">
+    <sensor name="gazebo_lidar" type="ray">
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+        <update_rate>60</update_rate>
+        <plugin filename="libgazebo_ros_ray_sensor.so" name="gazebo_lidar">
+            <ros>
+                <remapping>~/out:=scan</remapping>
+            </ros>
+            <output_type>sensor_msgs/LaserScan</output_type>
+            <frame_name>lidar_link</frame_name>
+        </plugin>
+        <ray>
+            <scan>
+                <horizontal>
+                    <samples>360</samples>
+                    <resolution>1.000000</resolution>
+                    <min_angle>1.570000</min_angle>
+                    <max_angle>4.710000</max_angle>
+                </horizontal>
+            </scan>
+            <range>
+                <min>0.020</min>
+                <max>12.0</max>
+                <resolution>0.015</resolution>
+            </range>
+            <noise>
+                <type>gaussian</type>
+                <mean>0.0</mean>
+                <stddev>0.01</stddev>
+            </noise>
+        </ray>
+    </sensor>
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
 
   <ros2_control name="GazeboSystem" type="system">
     <hardware>
