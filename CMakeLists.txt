@@ -20,6 +20,22 @@ find_package(gazebo_msgs REQUIRED)
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+
+function(custom_examples target)
+  add_executable(${target} examples/${target}.cpp)
+  ament_target_dependencies(${target} 
+    "rclcpp"
+    "geometry_msgs"
+    "std_msgs"
+    "tf2_ros"
+    "sensor_msgs"
+    "nav_msgs"
+    "gazebo_msgs"
+  )
+  install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
+endfunction()
+
+
 function(custom_executable target)
   add_executable(${target} src/${target}.cpp)
   ament_target_dependencies(${target} 
@@ -71,5 +87,7 @@ install(
 custom_executable(omuni_drive_node)
 custom_executable(omuni_odometry)
 custom_executable(example_omuni_drive_node)
+
+custom_examples(diff_drive)
 
 ament_package()
