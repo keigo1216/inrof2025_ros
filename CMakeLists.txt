@@ -80,7 +80,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch worlds models urdf config
+  DIRECTORY launch worlds models urdf config map
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -23,6 +23,12 @@ def generate_launch_description():
     world = os.path.join(
         get_package_share_directory("inrof2025_ros"), "worlds", "field.world"
     )
+    map_server_config_path = os.path.join(
+        package_dir,
+        "map",
+        "map.yaml"
+    )
+    lifecycle_nodes = ['map_server']
 
     # load robot urdf file
     xacro_file = os.path.join(package_dir, "urdf", "diff.xacro.urdf")
@@ -34,6 +40,7 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
+        emulate_tty=True,
         parameters=[
             params,
             {"use_sim_time": use_sim_time}
@@ -49,24 +56,27 @@ def generate_launch_description():
     spawn_entity = Node(
         package='gazebo_ros', executable='spawn_entity.py',
         arguments=['-topic', 'robot_description',
-                    '-entity', 'trolley',
+                    '-entity', 'diff',
                     '-x', str(x),
                     '-y', str(y),
                     '-z', str(z),
                     '-Y', str(theata),
                 ],
-        output='screen'
+        output='screen',
+        emulate_tty=True,
     )
     load_joint_state_broadcaster = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
              'joint_state_broadcaster'],
-        output='screen'
+        output='screen',
+        emulate_tty=True,
     )
 
     load_diff_drive_base_controller = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
              'diff_drive_base_controller'],
-        output='screen'
+        output='screen',
+        emulate_tty=True,
     )
 
     # rviz2 settings
@@ -75,8 +85,28 @@ def generate_launch_description():
         executable="rviz2",
         name="rviz2",
         output="log",
+        emulate_tty=True,
         parameters=[{"use_sim_time": use_sim_time}]
     )
+
+    # nav2 map_server
+    map_server_cmd = Node(
+        package="nav2_map_server",
+        executable="map_server",
+        output="screen",
+        parameters=[{'yaml_filename': map_server_config_path}]
+    )
+    start_lifecycle_manager_cmd = Node(
+        package="nav2_lifecycle_manager",
+        executable="lifecycle_manager",
+        name="lifecycle_manager",
+        output="screen",
+        emulate_tty=True,
+        parameters=[{'use_sim_time': use_sim_time},
+                    {'autostart': True},
+                    {'node_names': lifecycle_nodes}]
+    )
+
 
     return LaunchDescription([
         RegisterEventHandler(
@@ -94,68 +124,7 @@ def generate_launch_description():
         node_robot_state_publisher,
         gazebo,
         spawn_entity,
-        rviz_node
+        rviz_node,
+        map_server_cmd,
+        start_lifecycle_manager_cmd
     ])
-
-
-    # gazebo = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource([os.path.join(
-    #         get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-    # )
-    
-    # package_dir = get_package_share_directory("inrof2025_ros")
-
-    # xacro_file = os.path.join(
-    #     package_dir,
-    #     'urdf',
-    #     'diff.xacro.urdf'
-    # )
-
-    # doc = xacro.parse(open(xacro_file))
-    # xacro.process_doc(doc)
-    # params = {'robot_description': doc.toxml()}
-
-    # node_robot_state_publisher = Node(
-    #     package='robot_state_publisher',
-    #     executable='robot_state_publisher',
-    #     output='screen',
-    #     parameters=[params]
-    # )
-
-    # spawn_entity = Node(
-    #     package='gazebo_ros', executable='spawn_entity.py',
-    #     arguments=[
-    #         '-topic', 'robot_description',
-    #         '-entity', 'diffbot'],
-    #     output='screen'
-    # )
-
-    # load_joint_state_broadcaster = ExecuteProcess(
-    #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-    #          'joint_state_broadcaster'],
-    #     output='screen'
-    # )
-
-    # load_diff_drive_base_controller = ExecuteProcess(
-    #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
-    #          'diff_drive_base_controller'],
-    #     output='screen'
-    # )
-
-    # return LaunchDescription([
-    #     RegisterEventHandler(
-    #         event_handler=OnProcessExit(
-    #             target_action=spawn_entity,
-    #             on_exit=[load_joint_state_broadcaster],
-    #         )
-    #     ),
-    #     RegisterEventHandler(
-    #         event_handler=OnProcessExit(
-    #             target_action=load_joint_state_broadcaster,
-    #             on_exit=[load_diff_drive_base_controller],
-    #         )
-    #     ),
-    #     gazebo,
-    #     node_robot_state_publisher,
-    #     spawn_entity,
-    # ])
