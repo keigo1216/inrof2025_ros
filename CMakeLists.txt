@@ -9,11 +9,32 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(gazebo_ros REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(gazebo_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+
+function(custom_examples target)
+  add_executable(${target} examples/${target}.cpp)
+  ament_target_dependencies(${target} 
+    "rclcpp"
+    "geometry_msgs"
+    "std_msgs"
+    "tf2_ros"
+    "sensor_msgs"
+    "nav_msgs"
+    "gazebo_msgs"
+  )
+  install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
+endfunction()
+
 
 function(custom_executable target)
   add_executable(${target} src/${target}.cpp)
@@ -21,8 +42,29 @@ function(custom_executable target)
     "rclcpp"
     "geometry_msgs"
     "std_msgs"
+    "tf2_ros"
+    "sensor_msgs"
+    "nav_msgs"
+    "gazebo_msgs"
   )
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
+endfunction()
+
+function(custom_component target class_name)
+  rclcpp_components_register_node(${target}
+    PLUGIN ${class_name}
+    EXECUTABLE ${target}
+  )
+  ament_target_dependencies(${target}
+    "rclcpp"
+    "geometry_msgs"
+    "std_msgs"
+    "tf2_ros"
+    "sensor_msgs"
+    "nav_msgs"
+    "rclcpp_components"
+    "gazebo_msgs"
+  )
 endfunction()
 
 if(BUILD_TESTING)
@@ -38,11 +80,15 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch worlds models urdf config
+  DIRECTORY launch worlds models urdf config map
   DESTINATION share/${PROJECT_NAME}
 )
 
 custom_executable(omuni_drive_node)
+custom_executable(omuni_odometry)
 custom_executable(example_omuni_drive_node)
+custom_executable(diff_drive)
+
+# custom_examples(diff_drive)
 
 ament_package()

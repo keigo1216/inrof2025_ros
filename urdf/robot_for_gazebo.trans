@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<robot name="robot_for_gazebo" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+<transmission name="wheel_3_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="wheel_3">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="wheel_3_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="wheel_1_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="wheel_1">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="wheel_1_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="wheel_2_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="wheel_2">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="wheel_2_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+</robot>
