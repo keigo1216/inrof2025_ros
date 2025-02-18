@@ -5,7 +5,7 @@ height = 232
 # width = 4
 # height = 2
 max_val = 255
-filename = "tmp.pgm"
+filename = "map.pgm"
 
 @dataclass
 class Coordinate:

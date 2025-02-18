@@ -28,6 +28,7 @@ def generate_launch_description():
         "map",
         "map.yaml"
     )
+    print(map_server_config_path)
     lifecycle_nodes = ['map_server']
 
     # load robot urdf file
@@ -107,6 +108,14 @@ def generate_launch_description():
                     {'node_names': lifecycle_nodes}]
     )
 
+    # tf transfromer
+    static_from_map_to_odom = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="static_transform_publisher",
+        output="screen",
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    )
 
     return LaunchDescription([
         RegisterEventHandler(
@@ -126,5 +135,6 @@ def generate_launch_description():
         spawn_entity,
         rviz_node,
         map_server_cmd,
-        start_lifecycle_manager_cmd
+        start_lifecycle_manager_cmd,
+        static_from_map_to_odom
     ])
