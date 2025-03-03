@@ -16,6 +16,7 @@ find_package(tf2_ros REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(gazebo_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -31,6 +32,7 @@ function(custom_examples target)
     "sensor_msgs"
     "nav_msgs"
     "gazebo_msgs"
+    "visualization_msgs"
   )
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
@@ -46,6 +48,7 @@ function(custom_executable target)
     "sensor_msgs"
     "nav_msgs"
     "gazebo_msgs"
+    "visualization_msgs"
   )
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
@@ -64,6 +67,7 @@ function(custom_component target class_name)
     "nav_msgs"
     "rclcpp_components"
     "gazebo_msgs"
+    "visualization_msgs"
   )
 endfunction()
 
@@ -88,6 +92,7 @@ custom_executable(omuni_drive_node)
 custom_executable(omuni_odometry)
 custom_executable(example_omuni_drive_node)
 custom_executable(diff_drive)
+custom_executable(mcl_node)
 
 # custom_examples(diff_drive)
 

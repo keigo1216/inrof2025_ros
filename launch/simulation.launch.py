@@ -117,6 +117,15 @@ def generate_launch_description():
         arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
     )
 
+    mcl_node = Node(
+        package="inrof2025_ros",
+        executable="mcl_node",
+        parameters=[{
+            "use_sim_time": use_sim_time
+        }],
+        output="screen"
+    )
+
     return LaunchDescription([
         RegisterEventHandler(
             event_handler=OnProcessExit(
@@ -136,5 +145,6 @@ def generate_launch_description():
         rviz_node,
         map_server_cmd,
         start_lifecycle_manager_cmd,
-        static_from_map_to_odom
+        static_from_map_to_odom,
+        mcl_node
     ])
