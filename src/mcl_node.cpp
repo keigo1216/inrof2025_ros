@@ -44,18 +44,20 @@ namespace mcl {
                 pose.set__theta(0.0);
                 setMCLPose(pose);
                 
+                // initialize particle
                 geometry_msgs::msg::Pose2D initialNoise;
+                particleMarker_ = this->create_publisher<visualization_msgs::msg::Marker>("particles_marker", 10);
                 initialNoise.set__x(0.07); // var of x
                 initialNoise.set__y(0.07); // var of y
                 initialNoise.set__theta(M_PI/180.0); // var of theta
                 resetParticlesDistribution(initialNoise);
+                printParticlesMakerOnRviz2();
                 
                 // set mesurementModel
                 measurementModel_ = MeasurementModel::LikelihoodFieldModel;
                 
                 // setup publisher
-                particleMarker_ = this->create_publisher<visualization_msgs::msg::Marker>("particles_marker", 10);
-                timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&MCL::timer_callback, this));
+                timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&MCL::printParticlesMakerOnRviz2, this));
 
                 // TODO: delete
                 // pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
@@ -175,7 +177,7 @@ namespace mcl {
                     pt.y = particles_[i].getY();
                     marker.points.push_back(pt);
                 }
-
+                RCLCPP_INFO(this->get_logger(), "print paricles");
                 particleMarker_->publish(marker);
             }
             

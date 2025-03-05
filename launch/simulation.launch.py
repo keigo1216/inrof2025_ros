@@ -2,7 +2,7 @@ from ament_index_python.packages import get_package_share_directory
 
 
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler
+from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -96,13 +96,13 @@ def generate_launch_description():
     )
 
     # tf transfromer
-    # static_from_map_to_odom = Node(
-    #     package="tf2_ros",
-    #     executable="static_transform_publisher",
-    #     name="static_transform_publisher",
-    #     output="screen",
-    #     arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
-    # )
+    static_from_map_to_odom = Node(
+        package="tf2_ros",
+        executable="static_transform_publisher",
+        name="static_transform_publisher",
+        output="screen",
+        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+    )
 
     mcl_node = Node(
         package="inrof2025_ros",
@@ -114,6 +114,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
         # RegisterEventHandler(
         #     event_handler=OnProcessExit(
         #         target_action=spawn_entity,
@@ -130,9 +131,9 @@ def generate_launch_description():
         gazebo,
         spawn_entity,
         rviz_node,
-        # map_server_cmd,
-        # start_lifecycle_manager_cmd,
-        # static_from_map_to_odom,
+        map_server_cmd,
+        start_lifecycle_manager_cmd,
+        static_from_map_to_odom,
         mcl_node,
         # base_link_velocity_plugin_node
     ])

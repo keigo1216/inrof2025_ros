@@ -260,8 +260,14 @@
       <use_cmd_vel_topic>true</use_cmd_vel_topic>
       <cmd_vel_topic>/cmd_vel</cmd_vel_topic>
 
-      <publish_odom>false</publish_odom>
-      <publish_odom_tf>false</publish_odom_tf>
+      <!-- <publish_odom>false</publish_odom>
+      <publish_odom_tf>false</publish_odom_tf> -->
+
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
     </plugin>
   </gazebo>
 
