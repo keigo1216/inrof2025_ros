@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, LogInfo
+from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, LogInfo, SetEnvironmentVariable
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -103,6 +103,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,

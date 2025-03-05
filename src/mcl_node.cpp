@@ -1,5 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
+#include <geometry_msgs/msg/twist.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <random>
@@ -48,12 +49,16 @@ namespace mcl {
                 initialNoise.set__y(0.07); // var of y
                 initialNoise.set__theta(M_PI/180.0); // var of theta
                 resetParticlesDistribution(initialNoise);
-
+                
+                // set mesurementModel
                 measurementModel_ = MeasurementModel::LikelihoodFieldModel;
                 
                 // setup publisher
                 particleMarker_ = this->create_publisher<visualization_msgs::msg::Marker>("particles_marker", 10);
                 timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&MCL::timer_callback, this));
+
+                // TODO: delete
+                // pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
             } 
 
         private:
@@ -213,9 +218,9 @@ namespace mcl {
 
             // TODO: delete
             rclcpp::TimerBase::SharedPtr timer_;
+            rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_;
             void timer_callback() {
                 RCLCPP_INFO(this->get_logger(), "In timer loop");
-                printParticlesMakerOnRviz2();
             }
     };
 }

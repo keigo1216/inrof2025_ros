@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="robot_for_gazebo" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<robot name="robot" xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
 <material name="silver_default">
   <color rgba="0.700 0.700 0.700 1.000"/>
@@ -9,9 +9,6 @@
 </material>
 <material name="steel_satin">
   <color rgba="0.6274509803921569 0.6274509803921569 0.6274509803921569 1.0"/>
-</material>
-<material name="opaque198193188">
-  <color rgba="0.7764705882352941 0.7568627450980392 0.7372549019607844 1.0"/>
 </material>
 <material name="silicone_white">
   <color rgba="0.9647058823529412 0.9647058823529412 0.9529411764705882 1.0"/>
