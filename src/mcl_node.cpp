@@ -1,10 +1,14 @@
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <random>
 #include <rclcpp/rclcpp.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include <tf2_ros/transform_broadcaster.h>
 
 namespace mcl {
     class Particle {
@@ -35,13 +39,14 @@ namespace mcl {
                 
                 particleNum_ = this->get_parameter("particleNum").as_int();
                 particles_.resize(particleNum_);
-
-                // initalize mclPose
+            
+                // init robot pos
                 geometry_msgs::msg::Pose2D pose;
                 // TODO: get parameter from user
-                pose.set__x(0.0);
-                pose.set__y(0.0);
-                pose.set__theta(0.0);
+                pose.set__x(0.2);
+                pose.set__y(0.3);
+                pose.set__theta(1.57);
+                // initalize mclPose
                 setMCLPose(pose);
                 
                 // initialize particle
@@ -55,9 +60,9 @@ namespace mcl {
                 
                 // set mesurementModel
                 measurementModel_ = MeasurementModel::LikelihoodFieldModel;
-                
+
                 // setup publisher
-                timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&MCL::printParticlesMakerOnRviz2, this));
+                timer_ = this->create_wall_timer(std::chrono::seconds(1), std::bind(&MCL::loop, this));
 
                 // TODO: delete
                 // pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
@@ -66,6 +71,15 @@ namespace mcl {
         private:
             void setMCLPose(geometry_msgs::msg::Pose2D pose) { mclPose_=pose; }
             std::double_t randNormal(double n) { return (n * sqrt(-2.0 * log((double)rand() / RAND_MAX)) * cos(2.0 * M_PI * rand() / RAND_MAX)); }
+            
+            void loop() {
+                // updateParticles(0.1, 0);
+                printParticlesMakerOnRviz2();
+            }
+
+            void getRobotInitialPos() {
+                // TODO: split into robot_manager
+            }
 
             void resetParticlesDistribution(geometry_msgs::msg::Pose2D noise) {
                 std::double_t wo = 1.0 / (std::double_t)particles_.size();
@@ -79,21 +93,25 @@ namespace mcl {
                 }
             }
 
-            void updateParticles(std::double_t deltaDist, std::double_t deltaTheta) {
-                std::double_t dd2 = deltaDist * deltaDist;
-                std::double_t dtheta2 = deltaTheta * deltaTheta;
-                std::normal_distribution<std::double_t> distd_(0, odomNoise1_*dd2 + odomNoise2_*dtheta2);
-                std::normal_distribution<std::double_t> distt_(0, odomNoise3_*dd2 + odomNoise4_*dtheta2);
-                for (size_t particle_idx_=0; particle_idx_ < particles_.size(); particle_idx_++) {
-                    std::double_t dd = deltaDist + distd_(gen_);
-                    std::double_t dtheta = deltaTheta + distt_(gen_);
-                    std::double_t theta = particles_[particle_idx_].getTheta();
-                    std::double_t x = particles_[particle_idx_].getX() + dd*std::cos(theta);
-                    std::double_t y = particles_[particle_idx_].getY() + dtheta*std::sin(theta);
-                    theta += dtheta;
-                    particles_[particle_idx_].setPose(x, y, theta);
-                }
+            void updateParticles(geometry_msgs::msg::Twist delta) {
+                std::double_t dd2 = delta.linear.x * delta.linear.x + delta.linear.y + delta.linear.y;
             }
+
+            // void updateParticles(std::double_t deltaDist, std::double_t deltaTheta) {
+            //     std::double_t dd2 = deltaDist * deltaDist;
+            //     std::double_t dtheta2 = deltaTheta * deltaTheta;
+            //     std::normal_distribution<std::double_t> distd_(0, odomNoise1_*dd2 + odomNoise2_*dtheta2);
+            //     std::normal_distribution<std::double_t> distt_(0, odomNoise3_*dd2 + odomNoise4_*dtheta2);
+            //     for (size_t particle_idx_=0; particle_idx_ < particles_.size(); particle_idx_++) {
+            //         std::double_t dd = deltaDist + distd_(gen_);
+            //         std::double_t dtheta = deltaTheta + distt_(gen_);
+            //         std::double_t theta = particles_[particle_idx_].getTheta();
+            //         std::double_t x = particles_[particle_idx_].getX() + dd*std::cos(theta);
+            //         std::double_t y = particles_[particle_idx_].getY() + dd*std::sin(theta);
+            //         theta += dtheta;
+            //         particles_[particle_idx_].setPose(x, y, theta);
+            //     }
+            // }
 
             void caculateMeasurementModel(sensor_msgs::msg::LaserScan scan) {
                 totalLikelihood_ = 0.0;
@@ -175,6 +193,7 @@ namespace mcl {
                     geometry_msgs::msg::Point pt;
                     pt.x = particles_[i].getX();
                     pt.y = particles_[i].getY();
+                    pt.z = 0.3; // TODO: ハードコーディングは避けたい
                     marker.points.push_back(pt);
                 }
                 RCLCPP_INFO(this->get_logger(), "print paricles");
@@ -217,6 +236,11 @@ namespace mcl {
             // noize when updateing particle
             std::double_t odomNoise1_, odomNoise2_, odomNoise3_, odomNoise4_;
             std::mt19937 gen_;
+
+            std::string base_footprint_;
+            std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+            // TODO: delete
+            rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr s_odom_;
 
             // TODO: delete
             rclcpp::TimerBase::SharedPtr timer_;

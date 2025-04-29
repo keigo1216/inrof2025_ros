@@ -15,7 +15,7 @@ import os
 def generate_launch_description():
     x = 0.20
     y = 0.30
-    z = 0.35
+    z = 0.3
     theata = 1.57
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
