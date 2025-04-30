@@ -19,6 +19,11 @@
   <depend>nav_msgs</depend>
   <depend>gazebo_msgs</depend>
   <depend>visualization_msgs</depend>
+  <depend>nav2_map_server</depend>
+  <depend>nav2_lifecycle_manager</depend>
+  
+  <build_depend>xacro</build_depend>
+  <exec_depend>xacro</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
