@@ -46,9 +46,21 @@ ros2 daemon stop
 ros2 daemon start
 ```
 
+replace `<your workspace directory>` to ros workspace directory. (`/home/keigo/ros_ws`)
 ```bash
-echo 'export GAZEBO_MODEL_PATH=~/ros_ws/src/inrof2025_ros/models/field:$GAZEBO_MODEL_PATH' >> ~/.bashrc
-echo 'export GAZEBO_MODEL_PATH=~/ros_ws/src/inrof2025_ros/models/field:$GAZEBO_MODEL_PATH' >> ~/.bashrc 
+echo 'export GAZEBO_MODEL_PATH=<your workspace directory>/install/inrof2025_ros/share/inrof2025_ros/models/:${GAZEBO_MODEL_PATH}' >> ~/.bashrc
+```
+
+# build and launch
+build
+```bash
+cd ros_ws
+colcon build --packages-select inrof2025_ros
+```
+launch
+```bash
+source install/setup.zsh
+ros2 launch inrof2025_ros simulation.launch.py
 ```
 
 # control keyboard
