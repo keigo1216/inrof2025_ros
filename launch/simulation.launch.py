@@ -160,6 +160,6 @@ def generate_launch_description():
         static_from_map_to_odom,
         mcl_node,
         joy_node,
-        # joy2Vel_node
+        joy2Vel_node
         # base_link_velocity_plugin_node
     ])

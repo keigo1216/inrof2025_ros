@@ -22,7 +22,7 @@ namespace joy2Vel {
 
                 geometry_msgs::msg::Twist twist = geometry_msgs::msg::Twist();
                 twist.linear.set__x(leftJoyx_);
-                twist.linear.set__y(leftJoyy_);
+                twist.linear.set__y(0.0);
                 twist.linear.set__z(0.0);
                 twist.angular.set__x(0.0);
                 twist.angular.set__y(0.0);
