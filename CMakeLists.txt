@@ -93,6 +93,7 @@ custom_executable(omuni_odometry)
 custom_executable(example_omuni_drive_node)
 custom_executable(diff_drive)
 custom_executable(mcl_node)
+custom_executable(joy2vel)
 # custom_examples(diff_drive)
 
 ament_package()

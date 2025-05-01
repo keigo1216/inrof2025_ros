@@ -20,6 +20,7 @@ def generate_launch_description():
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     package_dir = get_package_share_directory("inrof2025_ros")
+    pkg_gazebo_ros = get_package_share_directory("gazebo_ros")
     world = os.path.join(
         get_package_share_directory("inrof2025_ros"), "worlds", "field.world"
     )
@@ -49,11 +50,18 @@ def generate_launch_description():
     ) 
 
     # gazebo settings
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('gazebo_ros'), 'launch'), '/gazebo.launch.py']),
-        launch_arguments={"world": world}.items()
+    gzserver_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
+        ),
+        launch_arguments={'world': world}.items()
     )
+    gzclient_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')
+        )
+    )
+
     spawn_entity = Node(
         package='gazebo_ros', executable='spawn_entity.py',
         arguments=['-topic', 'robot_description',
@@ -113,6 +121,21 @@ def generate_launch_description():
         output="screen"
     )
 
+    # joy
+    joy_node = Node(
+        package="joy",
+        executable="joy_node",
+        name="joy_node",
+        output="screen",
+    )
+
+    joy2Vel_node = Node(
+        package="inrof2025_ros",
+        executable="joy2vel",
+        name="joy2vel",
+        output="screen"
+    )
+
     return LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
         # RegisterEventHandler(
@@ -128,12 +151,15 @@ def generate_launch_description():
         #     )
         # ),
         node_robot_state_publisher,
-        gazebo,
+        gzserver_cmd,
+        gzclient_cmd,
         spawn_entity,
         rviz_node,
         map_server_cmd,
         start_lifecycle_manager_cmd,
         static_from_map_to_odom,
         mcl_node,
+        joy_node,
+        # joy2Vel_node
         # base_link_velocity_plugin_node
     ])
