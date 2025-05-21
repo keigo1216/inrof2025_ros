@@ -21,13 +21,15 @@ namespace joy2Vel {
                 std::float_t rightJoyy_ = msg->axes[3];
 
                 geometry_msgs::msg::Twist twist = geometry_msgs::msg::Twist();
-                twist.linear.set__x(leftJoyx_);
-                twist.linear.set__y(0.0);
+                twist.linear.set__x(leftJoyy_);
+                twist.linear.set__y(leftJoyx_);
                 twist.linear.set__z(0.0);
                 twist.angular.set__x(0.0);
                 twist.angular.set__y(0.0);
-                twist.angular.set__z(0.0);
+                twist.angular.set__z(0.5*rightJoyy_);
                 pub_->publish(twist);
+
+                RCLCPP_INFO(this->get_logger(), "%.3f", leftJoyx_);
             }
 
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_;

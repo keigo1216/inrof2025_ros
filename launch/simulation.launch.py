@@ -16,7 +16,7 @@ def generate_launch_description():
     x = 0.20
     y = 0.30
     z = 0.3
-    theata = 1.57
+    theata = 0
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     package_dir = get_package_share_directory("inrof2025_ros")
@@ -109,7 +109,7 @@ def generate_launch_description():
         executable="static_transform_publisher",
         name="static_transform_publisher",
         output="screen",
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+        arguments=['0', '0', '-0.255', '0', '0', '0', 'map', 'odom']
     )
 
     mcl_node = Node(
@@ -133,6 +133,12 @@ def generate_launch_description():
         package="inrof2025_ros",
         executable="joy2vel",
         name="joy2vel",
+        output="screen"
+    )
+
+    vel_feedback_node = Node(
+        package="inrof2025_ros",
+        executable="vel_feedback_node",
         output="screen"
     )
 
@@ -160,6 +166,6 @@ def generate_launch_description():
         static_from_map_to_odom,
         mcl_node,
         joy_node,
-        joy2Vel_node
-        # base_link_velocity_plugin_node
+        joy2Vel_node,
+        vel_feedback_node
     ])
