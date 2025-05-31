@@ -28,6 +28,13 @@ sudo apt-get install python3-rosdep
 sudo rosdep init
 rosdep update
 ```
+
+when execute on simulator (not on raspberrypi), set `WITH_SIM` to `1`
+``` bash
+export WITH_SIM=1 
+```
+
+install dependency
 ```bash
 rosdep install --from-paths src -y --ignore-src
 ```
