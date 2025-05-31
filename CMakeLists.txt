@@ -16,6 +16,12 @@ find_package(tf2_ros REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(gazebo_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(laser_geometry REQUIRED)
+find_package(tf2_sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -31,6 +37,11 @@ function(custom_examples target)
     "sensor_msgs"
     "nav_msgs"
     "gazebo_msgs"
+    "visualization_msgs"
+    "OpenCV"
+    "tf2_geometry_msgs"
+    "laser_geometry"
+    "tf2_sensor_msgs"
   )
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
@@ -46,7 +57,14 @@ function(custom_executable target)
     "sensor_msgs"
     "nav_msgs"
     "gazebo_msgs"
+    "visualization_msgs"
+    "yaml-cpp"
+    "OpenCV"
+    "tf2_geometry_msgs"
+    "laser_geometry"
+    "tf2_sensor_msgs"
   )
+  target_link_libraries(${target} ${YAML_CPP_LIBRARIES}) 
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
 
@@ -64,6 +82,12 @@ function(custom_component target class_name)
     "nav_msgs"
     "rclcpp_components"
     "gazebo_msgs"
+    "visualization_msgs"
+    "yaml-cpp"
+    "OpenCV"
+    "tf2_geometry_msgs"
+    "laser_geometry"
+    "tf2_sensor_msgs"
   )
 endfunction()
 
@@ -80,7 +104,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch worlds models urdf config map
+  DIRECTORY launch worlds models urdf config map meshes
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -88,7 +112,9 @@ custom_executable(omuni_drive_node)
 custom_executable(omuni_odometry)
 custom_executable(example_omuni_drive_node)
 custom_executable(diff_drive)
-
+custom_executable(mcl_node)
+custom_executable(joy2vel)
+custom_executable(vel_feedback_node)
 # custom_examples(diff_drive)
 
 ament_package()
