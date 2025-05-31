@@ -28,8 +28,6 @@ namespace joy2Vel {
                 twist.angular.set__y(0.0);
                 twist.angular.set__z(0.5*rightJoyy_);
                 pub_->publish(twist);
-
-                RCLCPP_INFO(this->get_logger(), "%.3f", leftJoyx_);
             }
 
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_;

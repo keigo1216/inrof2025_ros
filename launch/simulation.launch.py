@@ -11,12 +11,13 @@ from launch_ros.actions import Node
 
 import xacro
 import os
+import math
 
 def generate_launch_description():
-    x = 0.20
-    y = 0.30
-    z = 0.3
-    theata = 0
+    x = 0.25
+    y = 0.25
+    z = 0.30
+    theata = math.pi / 2
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     package_dir = get_package_share_directory("inrof2025_ros")

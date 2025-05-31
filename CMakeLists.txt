@@ -17,6 +17,11 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(gazebo_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(laser_geometry REQUIRED)
+find_package(tf2_sensor_msgs REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -33,6 +38,10 @@ function(custom_examples target)
     "nav_msgs"
     "gazebo_msgs"
     "visualization_msgs"
+    "OpenCV"
+    "tf2_geometry_msgs"
+    "laser_geometry"
+    "tf2_sensor_msgs"
   )
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
@@ -49,7 +58,13 @@ function(custom_executable target)
     "nav_msgs"
     "gazebo_msgs"
     "visualization_msgs"
+    "yaml-cpp"
+    "OpenCV"
+    "tf2_geometry_msgs"
+    "laser_geometry"
+    "tf2_sensor_msgs"
   )
+  target_link_libraries(${target} ${YAML_CPP_LIBRARIES}) 
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
 
@@ -68,6 +83,11 @@ function(custom_component target class_name)
     "rclcpp_components"
     "gazebo_msgs"
     "visualization_msgs"
+    "yaml-cpp"
+    "OpenCV"
+    "tf2_geometry_msgs"
+    "laser_geometry"
+    "tf2_sensor_msgs"
   )
 endfunction()
 
