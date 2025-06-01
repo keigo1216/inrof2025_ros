@@ -82,6 +82,12 @@ def generate_launch_description():
         output="screen"
     )
 
+    vel_feedback_node = Node(
+        package="inrof2025_ros",
+        executable="vel_feedback_uart",
+        output="screen"
+    )
+
     # cmd_velをキャッチして、uartに流すプログラムが必要
     return LaunchDescription([
         node_robot_state_publisher,
@@ -90,5 +96,6 @@ def generate_launch_description():
         static_from_map_to_odom,
         mcl_node,
         joy_node,
-        joy2Vel_node
+        joy2Vel_node,
+        vel_feedback_node
     ])

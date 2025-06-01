@@ -135,10 +135,12 @@ if (BUILD_WITH_SIM)
   custom_executable(omuni_odometry)
   custom_executable(example_omuni_drive_node)
   custom_executable(diff_drive)
+  custom_executable(vel_feedback_node)
+else()
+  custom_executable(vel_feedback_uart)
 endif()
 
 custom_executable(mcl_node)
 custom_executable(joy2vel)
-custom_executable(vel_feedback_node)
 
 ament_package()

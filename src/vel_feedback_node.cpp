@@ -2,7 +2,6 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
 #include <nav_msgs/msg/odometry.hpp>
-#include <geometry_msgs/msg/twist.hpp>
 
 namespace cmd_vel {
     class CmdVelFeedBack: public rclcpp::Node {

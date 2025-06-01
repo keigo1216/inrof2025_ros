@@ -21,6 +21,7 @@
 #include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 #include <laser_geometry/laser_geometry.hpp>
 #include <cmath>
+#include <cstdlib>
 
 using namespace std::chrono_literals; 
 
@@ -111,6 +112,8 @@ namespace mcl {
                     "/odom", callbackQos, std::bind(&MCL::odomCallback, this, std::placeholders::_1)
                 );
 
+                tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
+
                 pubPath_ = create_publisher<nav_msgs::msg::Path>("trajectory", 10);
                 path_.header.frame_id = "map";
                 
@@ -121,6 +124,7 @@ namespace mcl {
                 // setup publisher
                 iter_=0;
                 timer_ = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&MCL::loop, this));
+                RCLCPP_INFO(this->get_logger(), "fkrpekfpoafpoarkjf");
 
                 // TODO: deleteb
             } 
@@ -225,6 +229,8 @@ namespace mcl {
                 if (!cmdVel_) {
                     return;
                 }
+                // RCLCPP_INFO(this->get_logger(), "fkerpofkpoerkfopkarpofjaer");
+                
                 if (!scan_) {
                     return;
                 }          
@@ -239,6 +245,7 @@ namespace mcl {
                 delta_.linear.x = vx_*0.1;
                 delta_.linear.y = vy_*0.1;
                 delta_.angular.z = omega_*0.1;
+
 
                 updateParticles(delta_);
                 printParticlesMakerOnRviz2();
@@ -514,7 +521,27 @@ namespace mcl {
                 mclPose_.set__x(x);
                 mclPose_.set__y(y);
                 mclPose_.set__theta(theta);
-                RCLCPP_INFO(this->get_logger(), "%.4f %.4f", x, y);
+
+                // TODO: publish odom
+                const char *sim = std::getenv("WITH_SIM");
+                RCLCPP_INFO(this->get_logger(), "freofkprekfore");
+                if (!sim || std::string(sim) != "1") {
+                    geometry_msgs::msg::TransformStamped tf_msg;
+                    tf_msg.header.stamp = this->get_clock()->now();
+                    tf_msg.header.frame_id = "odom";
+                    tf_msg.child_frame_id = "base_footprint";
+
+                    tf_msg.transform.translation.x = x;
+                    tf_msg.transform.translation.y = y;
+                    tf_msg.transform.translation.z = 0.0;
+
+                    tf2::Quaternion q;
+                    q.setRPY(0.0, 0.0, theta);
+                    tf_msg.transform.rotation = tf2::toMsg(q);
+
+                    tf_broadcaster_->sendTransform(tf_msg);
+                }
+                // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", x, y);
             }
 
             void printParticlesMakerOnRviz2() {
@@ -638,7 +665,7 @@ namespace mcl {
             std::mt19937 gen_;
 
             std::string base_footprint_;
-            std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+            std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
             
             geometry_msgs::msg::Twist::SharedPtr cmdVel_;
             rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr subCmdVel_;
