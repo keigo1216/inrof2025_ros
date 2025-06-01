@@ -142,7 +142,7 @@ namespace mcl {
             //     yaw_ = yaw;
             //     odom_twist_ = msg->twist.twist.angular.z;
             //     // RCLCPP_INFO(this->get_logger(), "%.3f", yaw_);
-            //     // RCLCPP_INFO(this->get_logger(), "Yaw (rad): %.3f %.3f %.3f", yaw, msg->twist.twist.angular.z, particles_[0].getTheta());
+                // RCLCPP_INFO(this->get_logger(), "Yaw (rad): %.3f %.3f %.3f", yaw, msg->twist.twist.angular.z, particles_[0].getTheta());
             // }
 
             void laserScanCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan) {
@@ -325,7 +325,7 @@ namespace mcl {
                 sensor_msgs::msg::PointCloud2 cloud_in, cloud_out;
                 projector_.projectLaser(scan, cloud_in);
 
-                // RCLCPP_INFO(this->get_logger(), "%s", scan.header.frame_id.c_str());
+                RCLCPP_INFO(this->get_logger(), "%s", scan.header.frame_id.c_str());
 
                 geometry_msgs::msg::TransformStamped tf = tf_buffer_.lookupTransform(
                     "map",
@@ -405,7 +405,7 @@ namespace mcl {
                     std::double_t a = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
                     // TODO: ここの計算はだいぶ簡略化できそうなので，時間があればやる
                     std::double_t theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
-                    std::double_t x_lidar = r*cos(theta_lidar) + 0.005;
+                    std::double_t x_lidar = r*cos(theta_lidar) + 0.033 + 0.005;
                     std::double_t y_lidar = r*sin(theta_lidar) + 0.013 - 0.013;
                     
                     geometry_msgs::msg::Quaternion &q1 = odom_->pose.pose.orientation;
@@ -421,7 +421,7 @@ namespace mcl {
                     // debug
                     // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", lidar_x, *it_x);
                     // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f", odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
-                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f", x, *it_x, y, *it_y, odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
+                    RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f", x, *it_x, y, *it_y, odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
                     //
 
 
