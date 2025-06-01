@@ -20,8 +20,42 @@ namespace raspi {
                 receive_timer_ = this->create_wall_timer(
                     std::chrono::microseconds(10), std::bind(&CmdVel::receive_callback, this)
                 );
+                rclcpp::QoS sendQ(rclcpp::KeepLast(10));
+                sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
+                    "/cmd_vel", sendQ, std::bind(&CmdVel::send, this, std::placeholders::_1)
+                );
             }
         private:
+            void send(geometry_msgs::msg::Twist::SharedPtr msg) {
+                U32Bytes u32_bytes[3];
+                uint8_t buf[14];
+                memset(buf, 0x00, sizeof(buf));
+                float vel_x = msg->linear.x;
+                float vel_y = msg->linear.y;
+                float vel_theta = msg->angular.z;
+
+                // TODO: convert to velocity1, 2, 3
+
+                float velocity1 = vel_x;
+                float velocity2 = vel_y;
+                float velocity3 = vel_theta;
+    
+                u32_bytes[0].value = velocity1;
+                u32_bytes[1].value = velocity2;
+                u32_bytes[2].value = velocity3;
+
+                for (int i=0; i<3; i++ ) {
+                    std::memcpy(
+                        buf+i*4,
+                        u32_bytes[i].byte,
+                        4
+                    );
+                }
+                buf[12] = '\r';
+                buf[13] = '\n';
+
+                ::write(fd_, buf, 14);
+            }
             void receive_callback() {
                 uint8_t tmp[256];
                 ssize_t n = read(fd_, tmp, sizeof(tmp));
@@ -137,6 +171,7 @@ namespace raspi {
             int fd_;
             std::vector<uint8_t> recev_buffer_;
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_;
+            rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_;
             rclcpp::TimerBase::SharedPtr receive_timer_;
     };
 }
