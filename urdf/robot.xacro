@@ -91,7 +91,7 @@
   <link name="ldlidar_base"/>
   <joint name="lidar_joint" type="fixed">
     <parent link="LD19_with_mounter_v4_1"/>
-    <child  link="lidar_link"/>
+    <child  link="ldlidar_base"/>
     <origin xyz="0.033 0.013 -0.05" rpy="0 0 0"/>
   </joint>
   <gazebo reference="ldlidar_base">
