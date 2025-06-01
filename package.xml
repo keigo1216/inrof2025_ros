@@ -11,6 +11,7 @@
 
   <exec_depend condition="$WITH_SIM == '1'">gazebo_ros</exec_depend>
   <exec_depend condition="$WITH_SIM == '1'">gazebo_msgs</exec_depend>
+  <exec_depend>ldlidar_node</exec_depend>
   <!-- <depend>gazebo_ros</depend> -->
   <!-- <depend>gazebo_msgs</depend> -->
   <depend>rclcpp</depend>

@@ -4,7 +4,12 @@ from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEve
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
+from launch_ros.actions import Node, LifecycleNode
+from launch import LaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import IncludeLaunchDescription
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
 import os
 import xacro
@@ -53,6 +58,20 @@ def generate_launch_description():
         ]
     )
 
+    # #ldlidar
+    ldlidar_params = PathJoinSubstitution(
+        [FindPackageShare("inrof2025_ros"), "config", "ldlidar_settings.yaml"]
+    )
+
+    ldlidar_node = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [FindPackageShare("ldlidar_node"), "launch", "ldlidar_with_mgr.launch.py"]
+            )
+        ),
+        launch_arguments={"params_file": ldlidar_params}.items(),
+    )
+
     # tf transfromer
     static_from_map_to_odom = Node(
         package="tf2_ros",
@@ -61,6 +80,23 @@ def generate_launch_description():
         output="screen",
         arguments=['0', '0', '-0.255', '0', '0', '0', 'map', 'odom']
     )
+
+    static_from_odom_to_basefootprint = Node(
+    package="tf2_ros",
+    executable="static_transform_publisher",
+    name="static_odom_to_basefootprint",
+    output="screen",
+    arguments=[
+        "0.25",          # x  [m]
+        "0.25",          # y  [m]
+        "0.30",             # z  [m]
+        "0",             # yaw   [rad]
+        "0",             # pitch [rad]
+        "0",             # roll  [rad]
+        "odom",          # parent  frame
+        "base_footprint" # child   frame
+    ]
+)
 
     mcl_node = Node(
         package="inrof2025_ros",
@@ -97,5 +133,7 @@ def generate_launch_description():
         mcl_node,
         joy_node,
         joy2Vel_node,
-        vel_feedback_node
+        vel_feedback_node,
+        ldlidar_node,
+        static_from_odom_to_basefootprint
     ])

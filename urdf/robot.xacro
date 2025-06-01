@@ -88,13 +88,13 @@
   </link>
 
   <!-- LiDAR -->
-  <link name="lidar_link"/>
+  <link name="ldlidar_base"/>
   <joint name="lidar_joint" type="fixed">
     <parent link="LD19_with_mounter_v4_1"/>
     <child  link="lidar_link"/>
     <origin xyz="0.033 0.013 -0.05" rpy="0 0 0"/>
   </joint>
-  <gazebo reference="lidar_link">
+  <gazebo reference="ldlidar_base">
     <sensor type="ray" name="lidar_sensor">
       <always_on>true</always_on>
       <visualize>true</visualize>
@@ -121,10 +121,10 @@
       </ray>
       <plugin filename="libgazebo_ros_ray_sensor.so" name="gazebo_lidar">
         <ros>
-          <remapping>~/out:=scan</remapping>
+          <remapping>~/out:=/ldlidar_node/scan</remapping>
         </ros>
         <output_type>sensor_msgs/LaserScan</output_type>
-        <frame_name>lidar_link</frame_name>
+        <frame_name>ldlidar_base</frame_name>
       </plugin>
     </sensor>
   </gazebo>

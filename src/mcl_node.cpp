@@ -105,7 +105,7 @@ namespace mcl {
                 // TODO: ポーリングするなにかをつくりたいな（いじっているときに値が変更する可能性があるおがキモい）
                 rclcpp::QoS laserScanQos(rclcpp::KeepLast(10));
                 subLayerScan_ = create_subscription<sensor_msgs::msg::LaserScan>(
-                    "/scan", laserScanQos, std::bind(&MCL::laserScanCallback, this, std::placeholders::_1)
+                    "/ldlidar_node/scan", laserScanQos, std::bind(&MCL::laserScanCallback, this, std::placeholders::_1)
                 );
                 rclcpp::QoS callbackQos(rclcpp::KeepLast(10));
                 subOdom_ = create_subscription<nav_msgs::msg::Odometry>(
@@ -247,9 +247,9 @@ namespace mcl {
                 delta_.angular.z = omega_*0.1;
 
 
-                updateParticles(delta_);
+                // updateParticles(delta_);
                 printParticlesMakerOnRviz2();
-                caculateMeasurementModel(*scan_); // TODO: ポーリングする（この方法でもあたいが変更されることはなさそうだけど）
+                // caculateMeasurementModel(*scan_); // TODO: ポーリングする（この方法でもあたいが変更されることはなさそうだけど）
                 estimatePose();
                 printTrajectoryOnRviz2();
                 // TODO: printTrajectory
@@ -531,12 +531,12 @@ namespace mcl {
                     tf_msg.header.frame_id = "odom";
                     tf_msg.child_frame_id = "base_footprint";
 
-                    tf_msg.transform.translation.x = x;
-                    tf_msg.transform.translation.y = y;
+                    tf_msg.transform.translation.x = 0.25;
+                    tf_msg.transform.translation.y = 0.25;
                     tf_msg.transform.translation.z = 0.0;
 
                     tf2::Quaternion q;
-                    q.setRPY(0.0, 0.0, theta);
+                    q.setRPY(0.0, 0.0, M_PI/2);
                     tf_msg.transform.rotation = tf2::toMsg(q);
 
                     tf_broadcaster_->sendTransform(tf_msg);
