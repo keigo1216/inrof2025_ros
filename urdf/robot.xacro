@@ -92,7 +92,7 @@
   <joint name="lidar_joint" type="fixed">
     <parent link="LD19_with_mounter_v4_1"/>
     <child  link="lidar_link"/>
-    <origin xyz="0.0 0.013 -0.05" rpy="0 0 0"/>
+    <origin xyz="0.033 0.013 -0.05" rpy="0 0 0"/>
   </joint>
   <gazebo reference="lidar_link">
     <sensor type="ray" name="lidar_sensor">
