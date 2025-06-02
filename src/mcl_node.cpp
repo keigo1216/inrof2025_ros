@@ -123,7 +123,7 @@ namespace mcl {
 
                 // setup publisher
                 iter_=0;
-                timer_ = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&MCL::loop, this));
+                timer_ = this->create_wall_timer(std::chrono::milliseconds(10), std::bind(&MCL::loop, this));
                 RCLCPP_INFO(this->get_logger(), "fkrpekfpoafpoarkjf");
 
                 // TODO: deleteb
@@ -524,7 +524,7 @@ namespace mcl {
 
                 // TODO: publish odom
                 const char *sim = std::getenv("WITH_SIM");
-                RCLCPP_INFO(this->get_logger(), "freofkprekfore");
+                // RCLCPP_INFO(this->get_logger(), "freofkprekfore");
                 if (!sim || std::string(sim) != "1") {
                     geometry_msgs::msg::TransformStamped tf_msg;
                     tf_msg.header.stamp = this->get_clock()->now();
@@ -533,7 +533,7 @@ namespace mcl {
 
                     tf_msg.transform.translation.x = 0.25;
                     tf_msg.transform.translation.y = 0.25;
-                    tf_msg.transform.translation.z = 0.0;
+                    tf_msg.transform.translation.z = 0.3;
 
                     tf2::Quaternion q;
                     q.setRPY(0.0, 0.0, M_PI/2);

@@ -81,22 +81,22 @@ def generate_launch_description():
         arguments=['0', '0', '-0.255', '0', '0', '0', 'map', 'odom']
     )
 
-    static_from_odom_to_basefootprint = Node(
-    package="tf2_ros",
-    executable="static_transform_publisher",
-    name="static_odom_to_basefootprint",
-    output="screen",
-    arguments=[
-        "0.25",          # x  [m]
-        "0.25",          # y  [m]
-        "0.30",             # z  [m]
-        "0",             # yaw   [rad]
-        "0",             # pitch [rad]
-        "0",             # roll  [rad]
-        "odom",          # parent  frame
-        "base_footprint" # child   frame
-    ]
-)
+#     static_from_odom_to_basefootprint = Node(
+#     package="tf2_ros",
+#     executable="static_transform_publisher",
+#     name="static_odom_to_basefootprint",
+#     output="screen",
+#     arguments=[
+#         "0.25",          # x  [m]
+#         "0.25",          # y  [m]
+#         "0.30",             # z  [m]
+#         "0",             # yaw   [rad]
+#         "0",             # pitch [rad]
+#         "0",             # roll  [rad]
+#         "odom",          # parent  frame
+#         "base_footprint" # child   frame
+#     ]
+# )
 
     mcl_node = Node(
         package="inrof2025_ros",
@@ -135,5 +135,5 @@ def generate_launch_description():
         joy2Vel_node,
         vel_feedback_node,
         ldlidar_node,
-        static_from_odom_to_basefootprint
+        # static_from_odom_to_basefootprint
     ])
