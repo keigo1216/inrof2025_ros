@@ -11,10 +11,17 @@ namespace raspi {
         float value;
     } U32Bytes;
 
+    typedef struct MotorVel {
+        float v1;
+        float v2;
+        float v3;
+    } MotorVel;
+
     class CmdVel: public rclcpp::Node {
         public:
             explicit CmdVel(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("cmd_vel_feedback", options) {
                 fd_ = open_serial("/dev/ttyACM0");
+                r_ = 0.14;
                 rclcpp::QoS feedbackQ(rclcpp::KeepLast(10));
                 pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_feedback", feedbackQ);
                 receive_timer_ = this->create_wall_timer(
@@ -34,15 +41,11 @@ namespace raspi {
                 float vel_y = msg->linear.y;
                 float vel_theta = msg->angular.z;
 
-                // TODO: convert to velocity1, 2, 3
-
-                float velocity1 = vel_x;
-                float velocity2 = vel_y;
-                float velocity3 = vel_theta;
+                MotorVel motor_vel = forwardKinematics(vel_x, vel_y, vel_theta);
     
-                u32_bytes[0].value = velocity1;
-                u32_bytes[1].value = velocity2;
-                u32_bytes[2].value = velocity3;
+                u32_bytes[0].value = motor_vel.v1;
+                u32_bytes[1].value = motor_vel.v2;
+                u32_bytes[2].value = motor_vel.v3;
 
                 for (int i=0; i<3; i++ ) {
                     std::memcpy(
@@ -99,10 +102,10 @@ namespace raspi {
 
                         // caculate x, y, theta
                         // TODO: 時間付きで渡してあげたい気持ち
-                        geometry_msgs::msg::Twist twist;
-                        twist.linear.x = cmd_feedback[0];
-                        twist.linear.y = cmd_feedback[1];
-                        twist.angular.z = cmd_feedback[2];
+                        geometry_msgs::msg::Twist twist = inverseKinematics(cmd_feedback[0], cmd_feedback[1], cmd_feedback[2]);
+                        // twist.linear.x = cmd_feedback[0];
+                        // twist.linear.y = cmd_feedback[1];
+                        // twist.angular.z = cmd_feedback[2];
                         pub_->publish(twist);
                     }
                 }
@@ -168,7 +171,25 @@ namespace raspi {
                 return fd;
             }
 
+
+            MotorVel forwardKinematics(float vx, float vy, float vtheta) {
+                MotorVel motor_vel;
+                motor_vel.v1 = vx + r_*vtheta;
+                motor_vel.v2 = 0.5 * vx + std::sqrt(3)/2*vy - r_*vtheta;
+                motor_vel.v3 = -0.5 * vx + std::sqrt(3)/2*vy + r_*vtheta;
+                return motor_vel;
+            }
+
+            geometry_msgs::msg::Twist inverseKinematics(float v1, float v2, float v3) {
+                geometry_msgs::msg::Twist twist;
+                twist.linear.x = v2 - v3;
+                twist.linear.y = -2/std::sqrt(3)*v1 + std::sqrt(3)*v2 -1/std::sqrt(3)*v3;
+                twist.angular.z = 1/r_*v1 - 1/r_*v2 + 1/r_*v3;
+                return twist;
+            }
+
             int fd_;
+            float r_;
             std::vector<uint8_t> recev_buffer_;
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_;
             rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr sub_;

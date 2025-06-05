@@ -34,6 +34,31 @@ when execute on simulator (not on raspberrypi), set `WITH_SIM` to `1`
 export WITH_SIM=1 
 ```
 
+install opencv
+```bash
+sudo apt install libopencv-dev
+```
+
+setup ld19
+```bash
+cd ~/ros_ws/src/
+git clone https://github.com/keigo1216/ldrobot-lidar-ros2
+cd ldrobot-lidar-ros2
+git checkout humble
+```
+```bash
+sudo apt install libudev-dev
+```
+```bash
+cd ~/ros_ws/src/ldrobot-lidar-ros2/scripts/
+./create_udev_rules.sh
+```
+```bash
+cd ~/ros_ws/
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release
+```
+
 install dependency
 ```bash
 rosdep install --from-paths src -y --ignore-src
@@ -56,26 +81,6 @@ ros2 daemon start
 replace `<your workspace directory>` to ros workspace directory. (`/home/keigo/ros_ws`)
 ```bash
 echo 'export GAZEBO_MODEL_PATH=<your workspace directory>/install/inrof2025_ros/share/inrof2025_ros/models/:${GAZEBO_MODEL_PATH}' >> ~/.bashrc
-```
-
-# setup LD19 lidar
-```bash
-cd ~/ros_ws/src/
-git clone https://github.com/keigo1216/ldrobot-lidar-ros2
-cd ldrobot-lidar-ros2
-git checkout humble
-```
-```bash
-sudo apt install libudev-dev
-```
-```bash
-cd ~/ros_ws/src/ldrobot-lidar-ros2/scripts/
-./create_udev_rules.sh
-```
-```bash
-cd ~/ros_ws/
-rosdep install --from-paths src --ignore-src -r -y
-colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release
 ```
 
 # build and launch
