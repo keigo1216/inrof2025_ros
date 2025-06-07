@@ -89,7 +89,7 @@ def generate_launch_description():
         # 3D 位置 (x  y  z)
         '0.0', '0.0', '0.00',
         # 回転 (roll pitch yaw) でも quaternion(x y z w) でも可
-        '0', '0', '0',
+        '1.73', '0', '0',
         # 親フレーム / 子フレーム
         'ldlidar_base', 'ldlidar_link'
     ],

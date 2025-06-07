@@ -60,8 +60,8 @@ namespace mcl {
                 // init robot pos
                 geometry_msgs::msg::Pose2D pose;
                 // TODO: get parameter from user
-                pose.set__x(0.25);
-                pose.set__y(0.25);
+                pose.set__x(1.3);
+                pose.set__y(0.7);
                 pose.set__theta(M_PI / 2);
                 // initalize mclPose
                 setMCLPose(pose);
@@ -71,8 +71,8 @@ namespace mcl {
                 
                 // initialize particle
                 geometry_msgs::msg::Pose2D initialNoise;
-                rclcpp::QoS qosCloud(rclcpp::KeepLast(10));
-                particleMarker_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud", qosCloud);
+                auto cloud_qos = rclcpp::SensorDataQoS();
+                particleMarker_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("/cloud", cloud_qos);
                 initialNoise.set__x(0.07); // var of x
                 initialNoise.set__y(0.07); // var of y
                 initialNoise.set__theta(M_PI/180.0); // var of theta
@@ -103,14 +103,15 @@ namespace mcl {
                 );
 
                 // TODO: ポーリングするなにかをつくりたいな（いじっているときに値が変更する可能性があるおがキモい）
-                rclcpp::QoS laserScanQos(rclcpp::KeepLast(10));
+                // rclcpp::QoS laserScanQos(rclcpp::KeepLast(10));
+                auto laserScanQos = rclcpp::SensorDataQoS();
                 subLayerScan_ = create_subscription<sensor_msgs::msg::LaserScan>(
                     "/ldlidar_node/scan", laserScanQos, std::bind(&MCL::laserScanCallback, this, std::placeholders::_1)
                 );
-                rclcpp::QoS callbackQos(rclcpp::KeepLast(10));
-                subOdom_ = create_subscription<nav_msgs::msg::Odometry>(
-                    "/odom", callbackQos, std::bind(&MCL::odomCallback, this, std::placeholders::_1)
-                );
+                // rclcpp::QoS callbackQos(rclcpp::KeepLast(10));
+                // subOdom_ = create_subscription<nav_msgs::msg::Odometry>(
+                //     "/odom", callbackQos, std::bind(&MCL::odomCallback, this, std::placeholders::_1)
+                // );
 
                 tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
@@ -123,8 +124,8 @@ namespace mcl {
 
                 // setup publisher
                 iter_=0;
-                timer_ = this->create_wall_timer(std::chrono::milliseconds(10), std::bind(&MCL::loop, this));
-                RCLCPP_INFO(this->get_logger(), "fkrpekfpoafpoarkjf");
+                timer_ = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&MCL::loop, this));
+                RCLCPP_INFO(this->get_logger(), "Success initialize");
 
                 // TODO: deleteb
             } 
@@ -247,7 +248,7 @@ namespace mcl {
                 delta_.angular.z = omega_*0.1;
 
 
-                // updateParticles(delta_);
+                updateParticles(delta_);
                 printParticlesMakerOnRviz2();
                 // caculateMeasurementModel(*scan_); // TODO: ポーリングする（この方法でもあたいが変更されることはなさそうだけど）
                 estimatePose();
@@ -428,7 +429,7 @@ namespace mcl {
                     // debug
                     // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", lidar_x, *it_x);
                     // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f", odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
-                    RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f", x, *it_x, y, *it_y, odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
+                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f", x, *it_x, y, *it_y, odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
                     //
 
 
@@ -531,17 +532,18 @@ namespace mcl {
                     tf_msg.header.frame_id = "odom";
                     tf_msg.child_frame_id = "base_footprint";
 
-                    tf_msg.transform.translation.x = 0.25;
-                    tf_msg.transform.translation.y = 0.25;
+                    tf_msg.transform.translation.x = x;
+                    tf_msg.transform.translation.y = y;
                     tf_msg.transform.translation.z = 0.3;
 
                     tf2::Quaternion q;
-                    q.setRPY(0.0, 0.0, M_PI/2);
+                    q.setRPY(0.0, 0.0, theta);
                     tf_msg.transform.rotation = tf2::toMsg(q);
 
                     tf_broadcaster_->sendTransform(tf_msg);
+
+                    RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", x, y, theta);
                 }
-                // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", x, y);
             }
 
             void printParticlesMakerOnRviz2() {

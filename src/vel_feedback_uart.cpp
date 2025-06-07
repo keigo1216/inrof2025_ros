@@ -182,9 +182,9 @@ namespace raspi {
 
             geometry_msgs::msg::Twist inverseKinematics(float v1, float v2, float v3) {
                 geometry_msgs::msg::Twist twist;
-                twist.linear.x = v2 - v3;
-                twist.linear.y = -2/std::sqrt(3)*v1 + std::sqrt(3)*v2 -1/std::sqrt(3)*v3;
-                twist.angular.z = 1/r_*v1 - 1/r_*v2 + 1/r_*v3;
+                twist.linear.x = (2.0/3.0)*v1 + (1.0/3.0)*v2 - (1.0/3.0)*v3;
+                twist.linear.y = (1.0/std::sqrt(3))*v2 + (1.0/std::sqrt(3))*v3;
+                twist.angular.z = (1.0/3.0/r_)*v1 - (1.0/3.0/r_)*v2 + (1.0/3.0/r_)*v3;
                 return twist;
             }
 
