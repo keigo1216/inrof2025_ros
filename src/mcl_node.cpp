@@ -122,6 +122,14 @@ namespace mcl {
                 //     "/odom", tmp_qos, std::bind(&MCL::odomCallback, this, std::placeholders::_1)
                 // );
 
+                const char *sim = std::getenv("WITH_SIM");
+                // RCLCPP_INFO(this->get_logger(), "freofkprekfore");
+                if (!sim || std::string(sim) != "1") {
+                    is_sim_ = false;
+                } else {
+                    is_sim_ = true;
+                }
+
                 // setup publisher
                 iter_=0;
                 timer_ = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&MCL::loop, this));
@@ -415,7 +423,13 @@ namespace mcl {
                     // RCLCPP_INFO(this->get_logger(), "%lf", scan.angle_min);
                     std::double_t a = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
                     // TODO: ここの計算はだいぶ簡略化できそうなので，時間があればやる
-                    std::double_t theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment - 3.0*M_PI/2.0;
+                    
+                    std::double_t theta_lidar;
+                    if (is_sim_) {
+                        theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
+                    } else {
+                        theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment - 3.0*M_PI/2.0;
+                    }
                     // if (theta_lidar < -M_PI/2.0+M_PI/10.0 || theta_lidar < M_PI/2.0-M_PI/10.0) continue;
                     std::double_t x_lidar = r*cos(theta_lidar) + 0.033 + 0.005;
                     std::double_t y_lidar = r*sin(theta_lidar) + 0.013 - 0.013;
@@ -528,9 +542,7 @@ namespace mcl {
                 mclPose_.set__theta(theta);
 
                 // TODO: publish odom
-                const char *sim = std::getenv("WITH_SIM");
-                // RCLCPP_INFO(this->get_logger(), "freofkprekfore");
-                if (!sim || std::string(sim) != "1") {
+                if (!is_sim_) {
                     geometry_msgs::msg::TransformStamped tf_msg;
                     tf_msg.header.stamp = this->get_clock()->now();
                     tf_msg.header.frame_id = "odom";
@@ -678,6 +690,8 @@ namespace mcl {
 
             sensor_msgs::msg::LaserScan::SharedPtr scan_;
             rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subLayerScan_;
+
+            bool is_sim_;
 
             // print trajectory on rviz
             rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pubPath_;
