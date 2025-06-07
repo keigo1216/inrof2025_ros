@@ -532,12 +532,12 @@ namespace mcl {
                     tf_msg.header.frame_id = "odom";
                     tf_msg.child_frame_id = "base_footprint";
 
-                    tf_msg.transform.translation.x = x;
-                    tf_msg.transform.translation.y = y;
+                    tf_msg.transform.translation.x = 1.3;
+                    tf_msg.transform.translation.y = 0.7;
                     tf_msg.transform.translation.z = 0.3;
 
                     tf2::Quaternion q;
-                    q.setRPY(0.0, 0.0, theta);
+                    q.setRPY(0.0, 0.0, M_PI/2);
                     tf_msg.transform.rotation = tf2::toMsg(q);
 
                     tf_broadcaster_->sendTransform(tf_msg);

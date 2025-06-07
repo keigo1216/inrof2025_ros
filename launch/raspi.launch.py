@@ -13,6 +13,7 @@ from launch_ros.substitutions import FindPackageShare
 
 import os
 import xacro
+import math
 
 def generate_launch_description():
     package_dir = get_package_share_directory("inrof2025_ros")
@@ -89,7 +90,7 @@ def generate_launch_description():
         # 3D 位置 (x  y  z)
         '0.0', '0.0', '0.00',
         # 回転 (roll pitch yaw) でも quaternion(x y z w) でも可
-        '1.73', '0', '0',
+         '1.570', '0', '0',
         # 親フレーム / 子フレーム
         'ldlidar_base', 'ldlidar_link'
     ],
