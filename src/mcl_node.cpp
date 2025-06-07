@@ -51,7 +51,7 @@ namespace mcl {
     class MCL: public rclcpp::Node {
         public:
             explicit MCL(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("mcl_node", options), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_) {
-                this->declare_parameter<std::int32_t>("particleNum", 20);
+                this->declare_parameter<std::int32_t>("particleNum", 1);
                 
                 particleNum_ = this->get_parameter("particleNum").as_int();
                 particles_.resize(particleNum_);
@@ -87,7 +87,7 @@ namespace mcl {
                 this->mapWidth_ = 182;
                 this->mapHeight_ = 232;
                 this->mapDir_ = "src/inrof2025_ros/map/";
-                this->scanStep_ = 10;
+                this->scanStep_ = 50;
                 this->lfmSigma_ = 0.02;
                 this->zHit_ = 1.0;
                 this->zMax_ = 0.0;
@@ -249,10 +249,11 @@ namespace mcl {
 
 
                 updateParticles(delta_);
-                printParticlesMakerOnRviz2();
-                // caculateMeasurementModel(*scan_); // TODO: ポーリングする（この方法でもあたいが変更されることはなさそうだけど）
+                // printParticlesMakerOnRviz2();
+                caculateMeasurementModel(*scan_); // TODO: ポーリングする（この方法でもあたいが変更されることはなさそうだけど）
                 estimatePose();
                 printTrajectoryOnRviz2();
+                publishScanEndpoints();
                 // TODO: printTrajectory
             }
 
@@ -264,10 +265,10 @@ namespace mcl {
                 std::double_t wo = 1.0 / (std::double_t)particles_.size();
                 for (std::size_t i=0; i<particles_.size(); i++ ) {
                     // TODO: フィールドの中に入っていない場合はリサンプリングする
-                    std::double_t x = mclPose_.x + randNormal(noise.x);
-                    std::double_t y = mclPose_.y + randNormal(noise.y);
-                    // std::double_t x = mclPose_.x;
-                    // std::double_t y = mclPose_.y;
+                    // std::double_t x = mclPose_.x + randNormal(noise.x);
+                    // std::double_t y = mclPose_.y + randNormal(noise.y);
+                    std::double_t x = mclPose_.x;
+                    std::double_t y = mclPose_.y;
                     std::double_t theta = mclPose_.theta;
                     particles_[i].setPose(x, y, theta);
                     particles_[i].setW(wo);
@@ -275,10 +276,10 @@ namespace mcl {
             }
 
             void updateParticles(geometry_msgs::msg::Twist delta) {
-                std::double_t dd2 = delta.linear.x * delta.linear.x + delta.linear.y + delta.linear.y;
-                std::double_t dy2 = delta.angular.z * delta.angular.z;
-                // std::double_t dd2 = 0;
-                // std::double_t dy2 = 0;
+                // std::double_t dd2 = delta.linear.x * delta.linear.x + delta.linear.y + delta.linear.y;
+                // std::double_t dy2 = delta.angular.z * delta.angular.z;
+                std::double_t dd2 = 0;
+                std::double_t dy2 = 0;
                 for (size_t i = 0; i < this->particles_.size(); i++ ) {
                     std::double_t dx = delta.linear.x + randNormal(
                         odomNoise1_*dd2 + odomNoise2_*dy2
@@ -336,7 +337,7 @@ namespace mcl {
                 RCLCPP_INFO(this->get_logger(), "%s", scan.header.frame_id.c_str());
 
                 geometry_msgs::msg::TransformStamped tf = tf_buffer_.lookupTransform(
-                    "map",
+                    "ldlidar_base",
                     scan.header.frame_id,
                     tf2::TimePointZero  // 最新の transform を使う
                 );
@@ -393,15 +394,17 @@ namespace mcl {
                 std::double_t pRand = 1.0 / (scan.range_max / mapResolution_);
                 std::double_t w = 0.0;
 
-                sensor_msgs::msg::PointCloud2 pointCloud = layerScan2PointCloud(scan);
-                sensor_msgs::PointCloud2ConstIterator<float> it_x(pointCloud, "x");
-                sensor_msgs::PointCloud2ConstIterator<float> it_y(pointCloud, "y");
+                // sensor_msgs::msg::PointCloud2 pointCloud = layerScan2PointCloud(scan);
+                // sensor_msgs::PointCloud2ConstIterator<float> it_x(pointCloud, "x");
+                // sensor_msgs::PointCloud2ConstIterator<float> it_y(pointCloud, "y");
                 // sensor_msgs::PointCloud2ConstIterator<float> it_z(pointCloud, "z");
 
 
 
-                for (std::size_t i = 0; i < scan.ranges.size(); i+=scanStep_, it_x+=scanStep_, it_y+=scanStep_) {
+                for (std::size_t i = 0; i < scan.ranges.size(); i+=scanStep_) {
                     std::double_t r = scan.ranges[i];
+                    if (std::isnan(r)) continue;
+
                     // when r is max or min value
                     if (r < scan.range_min || scan.range_max < r) {
                         // w += log(zMax_*pMax + zRand_*pRand);
@@ -412,14 +415,15 @@ namespace mcl {
                     // RCLCPP_INFO(this->get_logger(), "%lf", scan.angle_min);
                     std::double_t a = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
                     // TODO: ここの計算はだいぶ簡略化できそうなので，時間があればやる
-                    std::double_t theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
+                    std::double_t theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment - 3.0*M_PI/2.0;
+                    // if (theta_lidar < -M_PI/2.0+M_PI/10.0 || theta_lidar < M_PI/2.0-M_PI/10.0) continue;
                     std::double_t x_lidar = r*cos(theta_lidar) + 0.033 + 0.005;
                     std::double_t y_lidar = r*sin(theta_lidar) + 0.013 - 0.013;
                     
-                    geometry_msgs::msg::Quaternion &q1 = odom_->pose.pose.orientation;
-                    double siny_cosp_1 = 2.0 * (q1.w * q1.z + q1.x * q1.y);
-                    double cosy_cosp_1 = 1.0 - 2.0 * (q1.y * q1.y + q1.z * q1.z);
-                    double theta = std::atan2(siny_cosp_1, cosy_cosp_1);
+                    // geometry_msgs::msg::Quaternion &q1 = odom_->pose.pose.orientation;
+                    // double siny_cosp_1 = 2.0 * (q1.w * q1.z + q1.x * q1.y);
+                    // double cosy_cosp_1 = 1.0 - 2.0 * (q1.y * q1.y + q1.z * q1.z);
+                    // double theta = std::atan2(siny_cosp_1, cosy_cosp_1);
                     std::double_t x = x_lidar*cos(pose.theta) - y_lidar*sin(pose.theta) + pose.x;
                     std::double_t y = x_lidar*sin(pose.theta) + y_lidar*cos(pose.theta) + pose.y;
 
@@ -429,7 +433,7 @@ namespace mcl {
                     // debug
                     // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", lidar_x, *it_x);
                     // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f", odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
-                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f", x, *it_x, y, *it_y, odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
+                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f", x, *it_x, y, *it_y);
                     //
 
 
@@ -463,7 +467,7 @@ namespace mcl {
                         // RCLCPP_INFO(this->get_logger(), "%d %d %lf %lf", u, v, d, log(p));
                         
                         //
-                        // scan_endpoints_.push_back(pt);
+                        scan_endpoints_.push_back(pt);
                         // particleMarker_->publish(cloud_tf);
                         //
                     } else {
@@ -477,34 +481,34 @@ namespace mcl {
                 return exp(w);
             }
 
-            // void publishScanEndpoints()
-            // {
-            //     sensor_msgs::msg::PointCloud2 cloud;
-            //     cloud.header.stamp    = this->get_clock()->now();
-            //     cloud.header.frame_id = "map";
-            //     cloud.height          = 1;
-            //     cloud.width           = scan_endpoints_.size();
-            //     cloud.is_dense        = false;
-            //     cloud.is_bigendian    = false;
+            void publishScanEndpoints()
+            {
+                sensor_msgs::msg::PointCloud2 cloud;
+                cloud.header.stamp    = this->get_clock()->now();
+                cloud.header.frame_id = "map";
+                cloud.height          = 1;
+                cloud.width           = scan_endpoints_.size();
+                cloud.is_dense        = false;
+                cloud.is_bigendian    = false;
 
-            //     // xyz フィールドだけを使う
-            //     sensor_msgs::PointCloud2Modifier mod(cloud);
-            //     mod.setPointCloud2FieldsByString(1, "xyz");
-            //     mod.resize(scan_endpoints_.size());
+                // xyz フィールドだけを使う
+                sensor_msgs::PointCloud2Modifier mod(cloud);
+                mod.setPointCloud2FieldsByString(1, "xyz");
+                mod.resize(scan_endpoints_.size());
 
-            //     sensor_msgs::PointCloud2Iterator<float> iter_x(cloud, "x");
-            //     sensor_msgs::PointCloud2Iterator<float> iter_y(cloud, "y");
-            //     sensor_msgs::PointCloud2Iterator<float> iter_z(cloud, "z");
+                sensor_msgs::PointCloud2Iterator<float> iter_x(cloud, "x");
+                sensor_msgs::PointCloud2Iterator<float> iter_y(cloud, "y");
+                sensor_msgs::PointCloud2Iterator<float> iter_z(cloud, "z");
 
-            //     for (const auto &pt : scan_endpoints_) {
-            //         *iter_x = pt.x;
-            //         *iter_y = pt.y;
-            //         *iter_z = pt.z;  // 0 で OK
-            //         ++iter_x; ++iter_y; ++iter_z;
-            //     }
+                for (const auto &pt : scan_endpoints_) {
+                    *iter_x = pt.x;
+                    *iter_y = pt.y;
+                    *iter_z = pt.z;  // 0 で OK
+                    ++iter_x; ++iter_y; ++iter_z;
+                }
 
-            //     particleMarker_->publish(cloud);
-            // }
+                particleMarker_->publish(cloud);
+            }
 
             void estimatePose() {
                 std::double_t tmpTheta = mclPose_.theta;
@@ -542,7 +546,7 @@ namespace mcl {
 
                     tf_broadcaster_->sendTransform(tf_msg);
 
-                    RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", x, y, theta);
+                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", x, y, theta);
                 }
             }
 
