@@ -5,9 +5,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+if("$ENV{WITH_SIM}" STREQUAL "1")
+  set(BUILD_WITH_SIM ON)
+else()
+  set(BUILD_WITH_SIM OFF)
+endif()
+message(STATUS "BUILD_WITH_SIM = ${BUILD_WITH_SIM}")
+
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(gazebo_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -15,13 +21,17 @@ find_package(std_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
-find_package(gazebo_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(tf2_sensor_msgs REQUIRED)
+
+if (BUILD_WITH_SIM)
+  find_package(gazebo_ros REQUIRED)
+  find_package(gazebo_msgs REQUIRED)
+endif()
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -36,13 +46,17 @@ function(custom_examples target)
     "tf2_ros"
     "sensor_msgs"
     "nav_msgs"
-    "gazebo_msgs"
     "visualization_msgs"
     "OpenCV"
     "tf2_geometry_msgs"
     "laser_geometry"
     "tf2_sensor_msgs"
   )
+  if (BUILD_WITH_SIM)
+    ament_target_dependencies(${target} 
+      "gazebo_msgs"
+    )
+  endif()
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
 
@@ -56,7 +70,6 @@ function(custom_executable target)
     "tf2_ros"
     "sensor_msgs"
     "nav_msgs"
-    "gazebo_msgs"
     "visualization_msgs"
     "yaml-cpp"
     "OpenCV"
@@ -64,6 +77,11 @@ function(custom_executable target)
     "laser_geometry"
     "tf2_sensor_msgs"
   )
+  if (BUILD_WITH_SIM)
+    ament_target_dependencies(${target} 
+      "gazebo_msgs"
+    )
+  endif()
   target_link_libraries(${target} ${YAML_CPP_LIBRARIES}) 
   install(TARGETS ${target} DESTINATION lib/${PROJECT_NAME})
 endfunction()
@@ -81,7 +99,6 @@ function(custom_component target class_name)
     "sensor_msgs"
     "nav_msgs"
     "rclcpp_components"
-    "gazebo_msgs"
     "visualization_msgs"
     "yaml-cpp"
     "OpenCV"
@@ -89,6 +106,11 @@ function(custom_component target class_name)
     "laser_geometry"
     "tf2_sensor_msgs"
   )
+  if (BUILD_WITH_SIM)
+    ament_target_dependencies(${target} 
+      "gazebo_msgs"
+    )
+  endif()
 endfunction()
 
 if(BUILD_TESTING)
@@ -108,13 +130,18 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-custom_executable(omuni_drive_node)
-custom_executable(omuni_odometry)
-custom_executable(example_omuni_drive_node)
-custom_executable(diff_drive)
+if (BUILD_WITH_SIM)
+  custom_executable(omuni_drive_node)
+  custom_executable(omuni_odometry)
+  custom_executable(example_omuni_drive_node)
+  custom_executable(diff_drive)
+  custom_executable(vel_feedback_node)
+else()
+  custom_executable(vel_feedback_uart)
+endif()
+
 custom_executable(mcl_node)
 custom_executable(joy2vel)
-custom_executable(vel_feedback_node)
-# custom_examples(diff_drive)
+custom_executable(uart_sample)
 
 ament_package()

@@ -17,16 +17,16 @@ namespace joy2Vel {
             void callback(const sensor_msgs::msg::Joy::UniquePtr msg) {
                 std::float_t leftJoyx_ = msg->axes[0];
                 std::float_t leftJoyy_ = msg->axes[1];
-                std::float_t rightJoyx_ = msg->axes[2];
+                // std::float_t rightJoyx_ = msg->axes[2];
                 std::float_t rightJoyy_ = msg->axes[3];
 
                 geometry_msgs::msg::Twist twist = geometry_msgs::msg::Twist();
-                twist.linear.set__x(leftJoyy_);
-                twist.linear.set__y(leftJoyx_);
+                twist.linear.set__x(leftJoyx_);
+                twist.linear.set__y(leftJoyy_);
                 twist.linear.set__z(0.0);
                 twist.angular.set__x(0.0);
                 twist.angular.set__y(0.0);
-                twist.angular.set__z(0.5*rightJoyy_);
+                twist.angular.set__z(rightJoyy_*60);
                 pub_->publish(twist);
             }
 
