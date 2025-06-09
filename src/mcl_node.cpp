@@ -52,22 +52,28 @@ namespace mcl {
         public:
             explicit MCL(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("mcl_node", options), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_) {
                 this->declare_parameter<std::int32_t>("particleNum", 1);
+                this->declare_parameter<std::float_t>("initial_x", 0.25);
+                this->declare_parameter<std::float_t>("initial_y", 0.25);
+                this->declare_parameter<std::float_t>("initial_theta", M_PI/2);
                 
                 particleNum_ = this->get_parameter("particleNum").as_int();
+                double initial_x = this->get_parameter("initial_x").as_double();
+                double initial_y = this->get_parameter("initial_y").as_double();
+                double initial_theta = this->get_parameter("initial_theta").as_double();
                 particles_.resize(particleNum_);
                 measurementLikelihoods_.resize(particleNum_);
             
                 // init robot pos
                 geometry_msgs::msg::Pose2D pose;
                 // TODO: get parameter from user
-                pose.set__x(1.3);
-                pose.set__y(0.7);
-                pose.set__theta(M_PI / 2);
+                pose.set__x(initial_x);
+                pose.set__y(initial_y);
+                pose.set__theta(initial_theta);
                 // initalize mclPose
                 setMCLPose(pose);
-                velOdom_.set__x(0.25);
-                velOdom_.set__y(0.25);
-                velOdom_.set__theta(M_PI / 2);
+                velOdom_.set__x(initial_x);
+                velOdom_.set__y(initial_y);
+                velOdom_.set__theta(initial_theta);
                 
                 // initialize particle
                 geometry_msgs::msg::Pose2D initialNoise;
