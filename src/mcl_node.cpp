@@ -46,12 +46,19 @@ namespace mcl {
             std::double_t w_;
     };
 
+    // TODO: iterを実装してforで回してあげたい
+    class probability {
+        public:
+            float p[1000];
+            int num_scan;
+    };
+
     enum class MeasurementModel { LikelihoodFieldModel };
 
     class MCL: public rclcpp::Node {
         public:
             explicit MCL(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("mcl_node", options), tf_buffer_(this->get_clock()), tf_listener_(tf_buffer_) {
-                this->declare_parameter<std::int32_t>("particleNum", 1);
+                this->declare_parameter<std::int32_t>("particleNum", 100);
                 this->declare_parameter<std::float_t>("initial_x", 0.25);
                 this->declare_parameter<std::float_t>("initial_y", 0.25);
                 this->declare_parameter<std::float_t>("initial_theta", M_PI/2);
@@ -61,6 +68,8 @@ namespace mcl {
                 double initial_y = this->get_parameter("initial_y").as_double();
                 double initial_theta = this->get_parameter("initial_theta").as_double();
                 particles_.resize(particleNum_);
+                pro_.resize(particleNum_);
+
                 measurementLikelihoods_.resize(particleNum_);
             
                 // init robot pos
@@ -94,10 +103,10 @@ namespace mcl {
                 this->mapHeight_ = 232;
                 this->mapDir_ = "src/inrof2025_ros/map/";
                 this->scanStep_ = 50;
-                this->lfmSigma_ = 0.02;
+                this->lfmSigma_ = 0.03;
                 this->zHit_ = 1.0;
                 this->zMax_ = 0.0;
-                this->zRand_ = 0.0;
+                this->zRand_ = 1.0;
 
                 MCL::readMap();
                 
@@ -263,11 +272,11 @@ namespace mcl {
 
 
                 updateParticles(delta_);
-                // printParticlesMakerOnRviz2();
+                printParticlesMakerOnRviz2();
                 caculateMeasurementModel(*scan_); // TODO: ポーリングする（この方法でもあたいが変更されることはなさそうだけど）
                 estimatePose();
                 printTrajectoryOnRviz2();
-                publishScanEndpoints();
+                // publishScanEndpoints();
                 // TODO: printTrajectory
             }
 
@@ -279,10 +288,10 @@ namespace mcl {
                 std::double_t wo = 1.0 / (std::double_t)particles_.size();
                 for (std::size_t i=0; i<particles_.size(); i++ ) {
                     // TODO: フィールドの中に入っていない場合はリサンプリングする
-                    // std::double_t x = mclPose_.x + randNormal(noise.x);
-                    // std::double_t y = mclPose_.y + randNormal(noise.y);
-                    std::double_t x = mclPose_.x;
-                    std::double_t y = mclPose_.y;
+                    std::double_t x = mclPose_.x + randNormal(noise.x);
+                    std::double_t y = mclPose_.y + randNormal(noise.y);
+                    // std::double_t x = mclPose_.x;
+                    // std::double_t y = mclPose_.y;
                     std::double_t theta = mclPose_.theta;
                     particles_[i].setPose(x, y, theta);
                     particles_[i].setW(wo);
@@ -290,10 +299,10 @@ namespace mcl {
             }
 
             void updateParticles(geometry_msgs::msg::Twist delta) {
-                // std::double_t dd2 = delta.linear.x * delta.linear.x + delta.linear.y + delta.linear.y;
-                // std::double_t dy2 = delta.angular.z * delta.angular.z;
-                std::double_t dd2 = 0;
-                std::double_t dy2 = 0;
+                std::double_t dd2 = delta.linear.x * delta.linear.x + delta.linear.y + delta.linear.y;
+                std::double_t dy2 = delta.angular.z * delta.angular.z;
+                // std::double_t dd2 = 0;
+                // std::double_t dy2 = 0;
                 for (size_t i = 0; i < this->particles_.size(); i++ ) {
                     std::double_t dx = delta.linear.x + randNormal(
                         odomNoise1_*dd2 + odomNoise2_*dy2
@@ -348,7 +357,7 @@ namespace mcl {
                 sensor_msgs::msg::PointCloud2 cloud_in, cloud_out;
                 projector_.projectLaser(scan, cloud_in);
 
-                RCLCPP_INFO(this->get_logger(), "%s", scan.header.frame_id.c_str());
+                // RCLCPP_INFO(this->get_logger(), "%s", scan.header.frame_id.c_str());
 
                 geometry_msgs::msg::TransformStamped tf = tf_buffer_.lookupTransform(
                     "ldlidar_base",
@@ -363,13 +372,15 @@ namespace mcl {
             void caculateMeasurementModel(sensor_msgs::msg::LaserScan scan) {
                 totalLikelihood_ = 0.0;
                 std::double_t maxLikelihood = 0.0;
+
+                std::vector<std::vector<double>> likelihood_table;
+                likelihood_table.reserve(particleNum_);
                 
                 for (std::size_t i = 0; i < particles_.size(); i++ ) {
                     std::double_t likelihood = 0.0;
                     // 尤度場モデル
                     if (measurementModel_ == MeasurementModel::LikelihoodFieldModel) {
-                        likelihood = caculateLikelihoodFieldModel(particles_[i].getPose(), scan);
-                        // RCLCPP_INFO(this->get_logger(), "%.4f", likelihood);
+                        likelihood_table.push_back(std::move(caculateLikelihoodFieldModel(particles_[i].getPose(), scan)));
                     }
                     if (i == 0) {
                         maxLikelihood = likelihood;
@@ -379,24 +390,38 @@ namespace mcl {
                         maxLikelihoodParticleIdx_ = i;
                     }
                     // RCLCPP_INFO(this->get_logger(), "%lf", maxLikelihood);
-
-                    measurementLikelihoods_[i] = likelihood;
-                    totalLikelihood_ += likelihood;
                 }
                 // RCLCPP_INFO(this->get_logger(), "%lf", maxLikelihood);
-                averageLikelihood_ = totalLikelihood_ / (double)(particles_.size());
-                
-                // normalize likelihood and caculate valid sample num
-                std::double_t sum = 0.0;
-                for(std::size_t i = 0; i < particles_.size(); i++ ) {
-                    std::double_t w = measurementLikelihoods_[i] / totalLikelihood_;
+                std::double_t w_sum = 0;
+                for(std::size_t i=0; i<likelihood_table.size(); i++ ) {
+                    std::double_t w = 0;
+                    for (std::size_t j=0; j<likelihood_table.size(); j++ ) {
+                        std::double_t loglikefood_sum=0;
+                        for (std::size_t k=0; k<likelihood_table[i].size(); k++ ) {
+                            // if (std::isnan(likelihood_table[j][k]) || std::isnan(likelihood_table[i][k])) continue;
+                            // if (likelihood_table[j][k]<1e-12 || likelihood_table[i][k]<1e-12) continue;
+                            loglikefood_sum += std::log(likelihood_table[j][k]/likelihood_table[i][k]);
+                            // RCLCPP_INFO(this->get_logger(), "j=%d k=%d %.4f", j, k, likelihood_table[j][k]);
+                        }
+                        w += std::exp(loglikefood_sum);
+                    }
+                    w = 1/w;
                     particles_[i].setW(w);
-                    sum += w*w;
+                    w_sum += w*w;
                 }
-                effectiveSampleSize_ = 1.0 / sum;
+                effectiveSampleSize_ = 1.0 / w_sum;
+                
+                // // normalize likelihood and caculate valid sample num
+                // std::double_t sum = 0.0;
+                // for(std::size_t i = 0; i < particles_.size(); i++ ) {
+                //     std::double_t w = measurementLikelihoods_[i] / totalLikelihood_;
+                //     particles_[i].setW(w);
+                //     sum += w*w;
+                // }
+                // effectiveSampleSize_ = 1.0 / sum;
             }
 
-            std::double_t caculateLikelihoodFieldModel (geometry_msgs::msg::Pose2D pose, sensor_msgs::msg::LaserScan scan) {
+            std::vector<std::double_t> caculateLikelihoodFieldModel (geometry_msgs::msg::Pose2D pose, sensor_msgs::msg::LaserScan scan) {
 
                 //
                 scan_endpoints_.clear();
@@ -405,7 +430,7 @@ namespace mcl {
                 std::double_t var = lfmSigma_*lfmSigma_;
                 std::double_t normConst = 1.0 / (sqrt(2.0*M_PI*var));
                 std::double_t pMax = 1.0 / mapResolution_; // <- mapResolution_で割る必要なくない？
-                std::double_t pRand = 1.0 / (scan.range_max / mapResolution_);
+                std::double_t pRand = 1.0 / scan.range_max * mapResolution_;
                 std::double_t w = 0.0;
 
                 // sensor_msgs::msg::PointCloud2 pointCloud = layerScan2PointCloud(scan);
@@ -414,15 +439,13 @@ namespace mcl {
                 // sensor_msgs::PointCloud2ConstIterator<float> it_z(pointCloud, "z");
 
 
+                std::vector<double> p_vector;
 
                 for (std::size_t i = 0; i < scan.ranges.size(); i+=scanStep_) {
                     std::double_t r = scan.ranges[i];
-                    if (std::isnan(r)) continue;
-
-                    // when r is max or min value
-                    if (r < scan.range_min || scan.range_max < r) {
-                        // w += log(zMax_*pMax + zRand_*pRand);
-                        continue;
+                    if (std::isnan(r) || r < scan.range_min || scan.range_max < r) {
+                        // p_vector.push_back(zRand_*pRand); // TODO: add pMax
+                        p_vector.push_back(zRand_*pRand);
                     }
 
                     // 間違っていそうな箇所
@@ -476,13 +499,13 @@ namespace mcl {
                     if (0 <= u && u < mapWidth_ && 0 <= v && v < mapHeight_) {
                         // TODO: 尤度場モデルからdをもってくる
                         std::double_t d = (std::double_t)distField_.at<std::double_t>(v, u);
-                        std::double_t pHit = normConst * exp(-(d*d)/(2.0*var)); // 確率密度 <=> 確率の変換は要注意
+                        std::double_t pHit = normConst * exp(-(d*d)/(2.0*var))*mapResolution_; // 確率密度 <=> 確率の変換は要注意
                         std::double_t p = zHit_*pHit + zRand_*pRand;
 
-                        if (p > 1.0) p = 1.0;
-                        w += log(p);
+                        // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", d, pHit);
 
-                        // RCLCPP_INFO(this->get_logger(), "d=%lf, p=%lf, log(p)=%lf, w=%lf", d, p,log(p), w);
+                        if (p > 1.0) p = 1.0;
+                        p_vector.push_back(p);
 
                         // RCLCPP_INFO(this->get_logger(), "%d %d %lf %lf", u, v, d, log(p));
                         
@@ -491,6 +514,8 @@ namespace mcl {
                         // particleMarker_->publish(cloud_tf);
                         //
                     } else {
+                        // RCLCPP_INFO(this->get_logger(), "fpeafreafkoera");
+                        p_vector.push_back(zRand_*pRand);
                         // w += log(zRand_ * pRand); // TODO
                     }
                     // RCLCPP_INFO(this->get_logger(), "##############################");
@@ -498,7 +523,7 @@ namespace mcl {
                 }
                 // RCLCPP_INFO(this->get_logger(), "####################################");
                 // publishScanEndpoints();
-                return exp(w);
+                return p_vector;
             }
 
             void publishScanEndpoints()
@@ -538,6 +563,7 @@ namespace mcl {
                     x += particles_[i].getX() * w;
                     y += particles_[i].getY() * w;
                     std::double_t dTheta = tmpTheta - particles_[i].getTheta();
+                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", w, particles_[i].getX(), particles_[i].getY());
                     while (dTheta < -M_PI) dTheta += 2.0*M_PI;
                     while (dTheta > M_PI) dTheta -= 2.0*M_PI;
                     theta += dTheta * w;
@@ -554,18 +580,18 @@ namespace mcl {
                     tf_msg.header.frame_id = "odom";
                     tf_msg.child_frame_id = "base_footprint";
 
-                    tf_msg.transform.translation.x = 1.3;
-                    tf_msg.transform.translation.y = 0.7;
+                    tf_msg.transform.translation.x = x;
+                    tf_msg.transform.translation.y = y;
                     tf_msg.transform.translation.z = 0.3;
 
                     tf2::Quaternion q;
-                    q.setRPY(0.0, 0.0, M_PI/2);
+                    q.setRPY(0.0, 0.0, theta);
                     tf_msg.transform.rotation = tf2::toMsg(q);
 
                     tf_broadcaster_->sendTransform(tf_msg);
-
-                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", x, y, theta);
                 }
+
+                RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", x, y, theta);
             }
 
             void printParticlesMakerOnRviz2() {
@@ -595,7 +621,7 @@ namespace mcl {
 
                     *iter_r = 0;
                     *iter_g = 0;
-                    *iter_b = 255;
+                    *iter_b = int(p.getW()*255);
 
                     ++iter_x, ++iter_y, ++iter_z;
                     ++iter_r; ++iter_g; ++iter_b;
@@ -669,6 +695,7 @@ namespace mcl {
             std::double_t totalLikelihood_;
             std::double_t averageLikelihood_;
             std::vector<std::double_t> measurementLikelihoods_;
+            std::vector<probability> pro_;
 
             std::double_t effectiveSampleSize_;
 
