@@ -14,8 +14,8 @@ import os
 import math
 
 def generate_launch_description():
-    x = 0.25
-    y = 0.25
+    x = 1.3
+    y = 0.8
     z = 0.30
     theata = math.pi / 2
 
@@ -117,6 +117,9 @@ def generate_launch_description():
         package="inrof2025_ros",
         executable="mcl_node",
         parameters=[{
+            "initial_x": x,
+            "initial_y": y,
+            "initial_theta": theata,
             "use_sim_time": use_sim_time
         }],
         output="screen"
