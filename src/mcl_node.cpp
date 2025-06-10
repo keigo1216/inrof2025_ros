@@ -222,25 +222,25 @@ namespace mcl {
                     }
                     RCLCPP_INFO(this->get_logger(), "(11, 50) = %lf", distFieldF.at<std::float_t>(11, 50));
 
-                    // // 1) 距離場 distFieldD（CV_64F）を 0–255 に正規化して 8bit 化
-                    // cv::Mat normDist;
-                    // cv::normalize(distFieldD, normDist, 0.0, 255.0, cv::NORM_MINMAX);
-                    // cv::Mat dist8U;
-                    // normDist.convertTo(dist8U, CV_8U);
+                    // 1) 距離場 distFieldD（CV_64F）を 0–255 に正規化して 8bit 化
+                    cv::Mat normDist;
+                    cv::normalize(distFieldD, normDist, 0.0, 255.0, cv::NORM_MINMAX);
+                    cv::Mat dist8U;
+                    normDist.convertTo(dist8U, CV_8U);
 
-                    // // 2) グレースケール→BGR に変換
-                    // cv::Mat colorImg;
-                    // cv::cvtColor(dist8U, colorImg, cv::COLOR_GRAY2BGR);
+                    // 2) グレースケール→BGR に変換
+                    cv::Mat colorImg;
+                    cv::cvtColor(dist8U, colorImg, cv::COLOR_GRAY2BGR);
 
-                    // // 3) 特定ピクセルをマーク (row=50, col=11 を赤に)
-                    // //    .at は (y,x) = (row,col) の順番なので注意
-                    // colorImg.at<cv::Vec3b>(11, 50) = cv::Vec3b(0, 0, 255);
+                    // 3) 特定ピクセルをマーク (row=50, col=11 を赤に)
+                    //    .at は (y,x) = (row,col) の順番なので注意
+                    colorImg.at<cv::Vec3b>(11, 50) = cv::Vec3b(0, 0, 255);
 
                     // （任意）円マークを描く場合
-                    // cv::circle(colorImg, cv::Point(11, 50), /*半径*/ 3, cv::Scalar(0,255,0), /*塗りつぶし*/ -1);
+                    cv::circle(colorImg, cv::Point(11, 50), /*半径*/ 3, cv::Scalar(0,255,0), /*塗りつぶし*/ -1);
 
                     // 4) 画像を保存
-                    // cv::imwrite("distField_highlight.png", colorImg);
+                    cv::imwrite("distField_highlight.png", colorImg);
 
                     distField_ = distFieldD.clone();
                 } catch (const YAML::Exception& e) {

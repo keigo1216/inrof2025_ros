@@ -143,5 +143,6 @@ endif()
 custom_executable(mcl_node)
 custom_executable(joy2vel)
 custom_executable(uart_sample)
+custom_executable(gen_path)
 
 ament_package()

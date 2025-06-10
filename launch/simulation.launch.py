@@ -146,6 +146,12 @@ def generate_launch_description():
         output="screen"
     )
 
+    gen_path = Node(
+        package="inrof2025_ros",
+        executable="gen_path",
+        output="screen"
+    )
+
     return LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
         # RegisterEventHandler(
@@ -168,8 +174,9 @@ def generate_launch_description():
         map_server_cmd,
         start_lifecycle_manager_cmd,
         static_from_map_to_odom,
-        mcl_node,
+        # mcl_node,
         joy_node,
         joy2Vel_node,
-        vel_feedback_node
+        vel_feedback_node,
+        gen_path
     ])
