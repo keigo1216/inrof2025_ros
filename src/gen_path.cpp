@@ -17,7 +17,8 @@ namespace path {
                 readMap();
 
                 // TODO: subscriber
-                timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&PathGenerator::generator, this));
+                // timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&PathGenerator::generator, this));
+                generator();
             }
         private:
         struct mapNode {
@@ -59,7 +60,7 @@ namespace path {
             xy2uv(sx, sy, &su, &sv);
             xy2uv(gx, gy, &gu, &gv);
 
-            RCLCPP_INFO(this->get_logger(), "start %d %d", su, sv);
+            // RCLCPP_INFO(this->get_logger(), "start %d %d", su, sv);
 
             distances[sv][su] = 0;
             q.push({su, sv, 0});
@@ -112,7 +113,7 @@ namespace path {
                 pose.pose.orientation.w = 1.0;
 
 
-                RCLCPP_INFO(this->get_logger(), "%d %d %.4f %.4f", gr, gc, pose.pose.position.x, pose.pose.position.y);
+                // RCLCPP_INFO(this->get_logger(), "%d %d %.4f %.4f", gr, gc, pose.pose.position.x, pose.pose.position.y);
                 
                 pathMsg.poses.push_back(std::move(pose));
             }

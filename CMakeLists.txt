@@ -144,5 +144,6 @@ custom_executable(mcl_node)
 custom_executable(joy2vel)
 custom_executable(uart_sample)
 custom_executable(gen_path)
+custom_executable(follow_node)
 
 ament_package()

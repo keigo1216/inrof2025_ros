@@ -14,8 +14,8 @@ import os
 import math
 
 def generate_launch_description():
-    x = 1.3
-    y = 0.8
+    x = 0.25
+    y = 0.25
     z = 0.30
     theata = math.pi / 2
 
@@ -152,6 +152,12 @@ def generate_launch_description():
         output="screen"
     )
 
+    follow_node = Node(
+        package="inrof2025_ros",
+        executable="follow_node",
+        output="screen"
+    )
+
     return LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
         # RegisterEventHandler(
@@ -178,5 +184,6 @@ def generate_launch_description():
         joy_node,
         joy2Vel_node,
         vel_feedback_node,
-        gen_path
+        gen_path,
+        follow_node
     ])
