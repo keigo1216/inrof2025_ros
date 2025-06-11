@@ -44,7 +44,7 @@ class FollowNode: public rclcpp::Node {
             double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
             double yaw = std::atan2(siny_cosp, cosy_cosp);
             pose_.theta = yaw;
-            RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose_.x, pose_.y);
+            // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose_.x, pose_.y);
         }
         void controlLoop() {
             // std::lock_guard<std::mutex> lock(mutex_);

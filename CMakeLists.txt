@@ -27,6 +27,8 @@ find_package(OpenCV REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(laser_geometry REQUIRED)
 find_package(tf2_sensor_msgs REQUIRED)
+find_package(behaviortree_cpp REQUIRED)
+find_package(inrof2025_ros_type REQUIRED)
 
 if (BUILD_WITH_SIM)
   find_package(gazebo_ros REQUIRED)
@@ -51,6 +53,8 @@ function(custom_examples target)
     "tf2_geometry_msgs"
     "laser_geometry"
     "tf2_sensor_msgs"
+    "behaviortree_cpp"
+    "inrof2025_ros_type"
   )
   if (BUILD_WITH_SIM)
     ament_target_dependencies(${target} 
@@ -76,6 +80,8 @@ function(custom_executable target)
     "tf2_geometry_msgs"
     "laser_geometry"
     "tf2_sensor_msgs"
+    "behaviortree_cpp"
+    "inrof2025_ros_type"
   )
   if (BUILD_WITH_SIM)
     ament_target_dependencies(${target} 
@@ -105,6 +111,8 @@ function(custom_component target class_name)
     "tf2_geometry_msgs"
     "laser_geometry"
     "tf2_sensor_msgs"
+    "behaviortree_cpp"
+    "inrof2025_ros_type"
   )
   if (BUILD_WITH_SIM)
     ament_target_dependencies(${target} 
@@ -145,5 +153,7 @@ custom_executable(joy2vel)
 custom_executable(uart_sample)
 custom_executable(gen_path)
 custom_executable(follow_node)
+custom_executable(bt_node)
+# target_link_libraries(bt_node "${cpp_typesupport_target}") 
 
 ament_package()

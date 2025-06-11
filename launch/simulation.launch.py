@@ -3,7 +3,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
-from launch.event_handlers import OnProcessExit
+from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
@@ -149,12 +149,24 @@ def generate_launch_description():
     gen_path = Node(
         package="inrof2025_ros",
         executable="gen_path",
-        output="screen"
+        output="screen",
+        parameters=[{
+            "initial_x": x,
+            "initial_y": y,
+            "initial_theta": theata,
+            "use_sim_time": use_sim_time
+        }],
     )
 
     follow_node = Node(
         package="inrof2025_ros",
         executable="follow_node",
+        output="screen"
+    )
+
+    bt_node = Node (
+        package="inrof2025_ros",
+        executable="bt_node",
         output="screen"
     )
 
@@ -185,5 +197,6 @@ def generate_launch_description():
         joy2Vel_node,
         vel_feedback_node,
         gen_path,
-        follow_node
+        follow_node,
+        bt_node
     ])
