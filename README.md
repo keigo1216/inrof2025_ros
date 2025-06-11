@@ -70,6 +70,12 @@ rosdep install --from-paths src -y --ignore-src
 sudo apt install -y python3-colcon-common-extensions
 ```
 
+install BehaviorTree4.8
+```bash
+sudo apt install libzmq3-dev libboost-dev qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev
+
+```
+
 # env settings
 Set `ROS_DOMAIN_ID` for Distributed processing and restart ros2 demon
 ```bash
