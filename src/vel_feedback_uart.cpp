@@ -174,14 +174,20 @@ namespace raspi {
 
             MotorVel forwardKinematics(float vx, float vy, float vtheta) {
                 MotorVel motor_vel;
-                motor_vel.v1 = vx + r_*vtheta;
-                motor_vel.v2 = 0.5 * vx + std::sqrt(3)/2*vy - r_*vtheta;
-                motor_vel.v3 = -0.5 * vx + std::sqrt(3)/2*vy + r_*vtheta;
+                // motor_vel.v1 = vx + r_*vtheta;
+                // motor_vel.v2 = 0.5 * vx + std::sqrt(3)/2*vy - r_*vtheta;
+                // motor_vel.v3 = -0.5 * vx + std::sqrt(3)/2*vy + r_*vtheta;
+                motor_vel.v1 = (-vy) + r_*vtheta;
+                motor_vel.v2 = 0.5 * (-vy) + std::sqrt(3)/2*vx - r_*vtheta;
+                motor_vel.v3 = -0.5 * (-vy) + std::sqrt(3)/2*vx + r_*vtheta;
                 return motor_vel;
             }
 
             geometry_msgs::msg::Twist inverseKinematics(float v1, float v2, float v3) {
                 geometry_msgs::msg::Twist twist;
+                // twist.linear.y = -((2.0/3.0)*v1 + (1.0/3.0)*v2 - (1.0/3.0)*v3);
+                // twist.linear.x = (1.0/std::sqrt(3))*v2 + (1.0/std::sqrt(3))*v3;
+                // twist.angular.z = (1.0/3.0/r_)*v1 - (1.0/3.0/r_)*v2 + (1.0/3.0/r_)*v3;
                 twist.linear.y = -((2.0/3.0)*v1 + (1.0/3.0)*v2 - (1.0/3.0)*v3);
                 twist.linear.x = (1.0/std::sqrt(3))*v2 + (1.0/std::sqrt(3))*v3;
                 twist.angular.z = (1.0/3.0/r_)*v1 - (1.0/3.0/r_)*v2 + (1.0/3.0/r_)*v3;
