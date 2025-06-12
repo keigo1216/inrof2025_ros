@@ -5,7 +5,6 @@
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <mutex>
 
-
 class FollowNode: public rclcpp::Node {
     public:
         explicit FollowNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("follow_node", options) {
@@ -47,6 +46,7 @@ class FollowNode: public rclcpp::Node {
             // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose_.x, pose_.y);
         }
         void controlLoop() {
+            return;
             // std::lock_guard<std::mutex> lock(mutex_);
             if (path_.empty()) {
                 // publishZero();
@@ -137,7 +137,7 @@ class FollowNode: public rclcpp::Node {
         std::vector<geometry_msgs::msg::PoseStamped> path_;
         std::mutex mutex_;
         geometry_msgs::msg::Pose2D pose_;
-        int current_waypoint_index_;
+        int current_waypoint_index_;        
 };
 
 int main(int argc, char *argv[]) {

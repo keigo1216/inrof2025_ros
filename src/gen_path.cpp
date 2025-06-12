@@ -271,7 +271,6 @@ namespace path {
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subOdom_;
         geometry_msgs::msg::Pose2D curOdom_;
         geometry_msgs::msg::Pose2D goalOdom_;
-        rclcpp::TimerBase::SharedPtr timer_;
 
         // connect to behaivorTree
         rclcpp::Service<inrof2025_ros_type::srv::GenRoute>::SharedPtr srvOdom_;

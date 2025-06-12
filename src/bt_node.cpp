@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
     rclcpp::init(argc, argv);
 
     ros_node = std::make_shared<BTNode>();
-
+    
     BehaviorTreeFactory factory;
     factory.registerNodeType<GenerateRoute>("generate_route");
 
@@ -20,11 +20,13 @@ int main(int argc, char* argv[]) {
     printTreeRecursively(tree.rootNode());
 
     NodeStatus status = NodeStatus::RUNNING;
+
     while(status == NodeStatus::RUNNING && rclcpp::ok()) {
         rclcpp::spin_some(ros_node);
         status = tree.tickOnce();
     }
 
     rclcpp::shutdown();
+
     return 0;
 }
