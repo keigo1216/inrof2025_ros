@@ -315,7 +315,7 @@ namespace mcl {
                 std::double_t dy2 = delta.angular.z * delta.angular.z;
                 // std::double_t dd2 = 0;
                 // std::double_t dy2 = 0;
-                RCLCPP_INFO(this->get_logger(), "odomNoise1=%lf", odomNoise1_);
+                // RCLCPP_INFO(this->get_logger(), "odomNoise1=%lf", odomNoise1_);
                 for (size_t i = 0; i < this->particles_.size(); i++ ) {
                     std::double_t dx = delta.linear.x + randNormal(
                         odomNoise1_*dd2 + odomNoise2_*dy2
@@ -324,7 +324,7 @@ namespace mcl {
                         odomNoise1_*dd2 + odomNoise2_*dy2
                     );
                     std::double_t dtheta = delta.angular.z + randNormal(
-                        odomNoise1_*dd2 + odomNoise2_*dy2
+                        odomNoise3_*dd2 + odomNoise4_*dy2
                     );
 
                     geometry_msgs::msg::Pose2D pose_ = this->particles_[i].getPose();

@@ -126,6 +126,8 @@ def generate_launch_description():
             "initial_x": x,
             "initial_y": y,
             "initial_theta": theata,
+            "odomNoise1": 3.0,
+            "odomNoise3": 3.0,
         }],
     )
 
@@ -165,9 +167,9 @@ def generate_launch_description():
         executable="follow_node",
         output="screen",
         parameters=[{
-            "max_linear_speed": 0.15,
-            "max_angular_speed": 0.4,
-            "lookahead_distance": 0.20,
+            "max_linear_speed": 0.10,
+            "max_angular_speed": 0.5,
+            "lookahead_distance": 0.10,
         }]
     )
 
