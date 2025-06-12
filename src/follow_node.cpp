@@ -6,6 +6,7 @@
 #include <mutex>
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <inrof2025_ros_type/action/follow.hpp>
+#include <inrof2025_ros_type/action/rotate.hpp>
 
 class FollowNode: public rclcpp::Node {
     public:
@@ -191,6 +192,10 @@ class FollowNode: public rclcpp::Node {
         // action server
         rclcpp_action::Server<inrof2025_ros_type::action::Follow>::SharedPtr action_server_;
         std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Follow>> goal_handle_;
+
+        // rotate action server
+        rclcpp_action::Server<inrof2025_ros_type::action::Rotate>::SharedPtr action_rotate_server_;
+        std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Rotate>> goal_rotate_handle_;
 };
 
 int main(int argc, char *argv[]) {

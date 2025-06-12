@@ -173,6 +173,12 @@ def generate_launch_description():
         }]
     )
 
+    rotate_node = Node(
+        package="inrof2025_ros",
+        executable="rotate_node",
+        output="screen",
+    )
+
     bt_node = Node (
         package="inrof2025_ros",
         executable="bt_node",
@@ -193,6 +199,7 @@ def generate_launch_description():
         static_ldlidar_tf,
         gen_path,
         follow_node,
-        bt_node
+        bt_node,
+        rotate_node,
         # static_from_odom_to_basefootprint
     ])

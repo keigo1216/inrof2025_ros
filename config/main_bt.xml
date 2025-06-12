@@ -4,15 +4,22 @@
   <BehaviorTree ID="MainBT">
     <Sequence>
       <Sequence>
-        <generate_route x="0.25"
-                        y="2"/>
+        <generate_route x="0.3"
+                        y="2.2"/>
         <follow_route/>
+        <rotate theta="3.14"/>
+        <rotate theta="0"/>
       </Sequence>
       <KeepRunningUntilFailure>
         <Sequence>
           <generate_route x="1.34"
                           y="1.8"/>
           <follow_route/>
+          <rotate theta="1.57"/>
+          <generate_route x="0.3"
+                          y="2.0"/>
+          <follow_route/>
+          <rotate theta="0"/>
         </Sequence>
       </KeepRunningUntilFailure>
     </Sequence>
@@ -26,6 +33,10 @@
             editable="true">
       <input_port name="x">TODO</input_port>
       <input_port name="y">TODO</input_port>
+    </Action>
+    <Action ID="rotate"
+            editable="true">
+      <input_port name="theta"/>
     </Action>
   </TreeNodesModel>
 

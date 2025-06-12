@@ -66,4 +66,41 @@ namespace ActionNodes {
                 std::cout << "interrupt SampleNode" << std::endl;
             }
     };
+
+    class Rotate : public StatefulActionNode {
+        public:
+            Rotate(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config){ }
+
+            static PortsList providedPorts() {
+                return { InputPort<int>("theta") };
+            }
+
+            NodeStatus onStart() override {
+                std::cout << "call SampleNode" << std::endl;
+                
+                // InputPortの値を受け取る
+                Expected<double> msg = getInput<int>("theta");
+                if (!msg) { // Inputの値が適切でないときの処理
+                    throw BT::RuntimeError("missing required input [sample_input]: ", msg.error() );
+                }
+                double targetTheta = msg.value();
+                ros_node->send_rotate_position(targetTheta);
+
+                return NodeStatus::RUNNING;
+            }
+
+            NodeStatus onRunning() override {
+            
+                if (ros_node->isRotateRuning()) {
+                    return NodeStatus::RUNNING;
+                } else {
+                    return NodeStatus::SUCCESS;
+                }
+                return NodeStatus::SUCCESS;
+            }
+
+            void onHalted() override {
+                std::cout << "interrupt SampleNode" << std::endl;
+            }
+    };
 }

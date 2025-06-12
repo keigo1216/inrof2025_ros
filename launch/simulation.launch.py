@@ -176,6 +176,13 @@ def generate_launch_description():
         output="screen"
     )
 
+    rotate_node = Node(
+        package="inrof2025_ros",
+        executable="rotate_node",
+        output="screen",
+    )
+
+
     return LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
         # RegisterEventHandler(
@@ -204,5 +211,6 @@ def generate_launch_description():
         vel_feedback_node,
         gen_path,
         follow_node,
+        rotate_node,
         bt_node
     ])

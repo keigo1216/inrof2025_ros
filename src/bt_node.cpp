@@ -12,6 +12,7 @@ int main(int argc, char* argv[]) {
     BehaviorTreeFactory factory;
     factory.registerNodeType<GenerateRoute>("generate_route");
     factory.registerNodeType<FollowRoute>("follow_route");
+    factory.registerNodeType<Rotate>("rotate");
 
     std::string package_path = ament_index_cpp::get_package_share_directory("inrof2025_ros");
     factory.registerBehaviorTreeFromFile(package_path + "/config/main_bt.xml");

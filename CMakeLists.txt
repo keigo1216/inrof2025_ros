@@ -155,5 +155,6 @@ custom_executable(gen_path)
 custom_executable(follow_node)
 custom_executable(bt_node)
 # target_link_libraries(bt_node "${cpp_typesupport_target}") 
+custom_executable(rotate_node)
 
 ament_package()
