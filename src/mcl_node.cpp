@@ -63,12 +63,20 @@ namespace mcl {
                 this->declare_parameter<std::float_t>("initial_y", 0.25);
                 this->declare_parameter<std::float_t>("initial_theta", M_PI/2);
                 this->declare_parameter<std::float_t>("resampleThreshold", 0.5);
+                this->declare_parameter<std::float_t>("odomNoise1", 1.0);
+                this->declare_parameter<std::float_t>("odomNoise2", 1.0);
+                this->declare_parameter<std::float_t>("odomNoise3", 1.0);
+                this->declare_parameter<std::float_t>("odomNoise4", 1.0);
                 
                 particleNum_ = this->get_parameter("particleNum").as_int();
                 double initial_x = this->get_parameter("initial_x").as_double();
                 double initial_y = this->get_parameter("initial_y").as_double();
                 double initial_theta = this->get_parameter("initial_theta").as_double();
                 this->resampleThreshold_ = this->get_parameter("resampleThreshold").as_double();
+                this->odomNoise1_ = this->get_parameter("odomNoise1").as_double();
+                this->odomNoise2_ = this->get_parameter("odomNoise2").as_double();
+                this->odomNoise3_ = this->get_parameter("odomNoise3").as_double();
+                this->odomNoise4_ = this->get_parameter("odomNoise4").as_double();
                 particles_.resize(particleNum_);
                 pro_.resize(particleNum_);
 
@@ -307,6 +315,7 @@ namespace mcl {
                 std::double_t dy2 = delta.angular.z * delta.angular.z;
                 // std::double_t dd2 = 0;
                 // std::double_t dy2 = 0;
+                RCLCPP_INFO(this->get_logger(), "odomNoise1=%lf", odomNoise1_);
                 for (size_t i = 0; i < this->particles_.size(); i++ ) {
                     std::double_t dx = delta.linear.x + randNormal(
                         odomNoise1_*dd2 + odomNoise2_*dy2
