@@ -56,6 +56,7 @@ class BTNode: public rclcpp::Node {
 
             RCLCPP_INFO(this->get_logger(), "send goal");
             actFollow_->async_send_goal(goal_msg, send_goal_options);
+            this->isRun_ = true;
         }
 
         void goalResponseCallback(rclcpp_action::ClientGoalHandle<inrof2025_ros_type::action::Follow>::SharedPtr goal_handle){
@@ -64,7 +65,6 @@ class BTNode: public rclcpp::Node {
             } else {
                 RCLCPP_WARN(this->get_logger(), "empty goal_handle");
             }
-            this->isRun_ = true;
         }
 
         void feedbackCallback(rclcpp_action::ClientGoalHandle<inrof2025_ros_type::action::Follow>::SharedPtr goal_handle, 
@@ -81,6 +81,7 @@ class BTNode: public rclcpp::Node {
         // rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr pubGenRoute_;
         rclcpp::Client<inrof2025_ros_type::srv::GenRoute>::SharedPtr srvGenRoute_;
         rclcpp_action::Client<inrof2025_ros_type::action::Follow>::SharedPtr actFollow_;
+        rclcpp_action::ClientGoalHandle<inrof2025_ros_type::action::Follow>::SharedPtr currentFollow_;
         bool isRun_{false};
 };
 

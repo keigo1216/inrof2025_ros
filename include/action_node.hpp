@@ -48,7 +48,6 @@ namespace ActionNodes {
             FollowRoute(const std::string& name) : StatefulActionNode(name, {}){}
 
             NodeStatus onStart() override {
-                std::cout << "call SampleNode" << std::endl;
                 ros_node->send_start_follow();
                 return NodeStatus::RUNNING;
             }
