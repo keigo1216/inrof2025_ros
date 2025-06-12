@@ -140,6 +140,7 @@ class FollowNode: public rclcpp::Node {
                 auto result_msg = std::make_shared<inrof2025_ros_type::action::Follow::Result>();
                 result_msg->success = true;
                 goal_handle_->succeed(result_msg);
+                goal_handle_.reset();
             } else {
                 geometry_msgs::msg::Twist cmd;
                 cmd.linear.x  = linear;
