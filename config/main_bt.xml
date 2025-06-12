@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4">
+<root BTCPP_format="4"
+      main_tree_to_execute="MainBT">
   <BehaviorTree ID="MainBT">
     <Sequence>
       <Sequence>
         <generate_route x="0.25"
-                        y="2.0"/>
+                        y="2"/>
+        <follow_route/>
       </Sequence>
     </Sequence>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
+    <Action ID="follow_route"
+            editable="true"/>
     <Action ID="generate_route"
             editable="true">
       <input_port name="x">TODO</input_port>

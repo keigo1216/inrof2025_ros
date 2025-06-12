@@ -41,6 +41,30 @@ namespace ActionNodes {
                 return NodeStatus::SUCCESS;
             }
         private:
+    };
 
+    class FollowRoute: public StatefulActionNode {
+        public:
+            FollowRoute(const std::string& name) : StatefulActionNode(name, {}){}
+
+            NodeStatus onStart() override {
+                std::cout << "call SampleNode" << std::endl;
+                ros_node->send_start_follow();
+                return NodeStatus::RUNNING;
+            }
+
+            NodeStatus onRunning() override {
+                
+                if (ros_node->isRuning()) {
+                    return NodeStatus::RUNNING;
+                } else {
+                    return NodeStatus::SUCCESS;
+                }
+            }
+
+            void onHalted() override {
+                // TODO
+                std::cout << "interrupt SampleNode" << std::endl;
+            }
     };
 }

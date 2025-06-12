@@ -4,6 +4,8 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <mutex>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <inrof2025_ros_type/action/follow.hpp>
 
 class FollowNode: public rclcpp::Node {
     public:
@@ -31,8 +33,41 @@ class FollowNode: public rclcpp::Node {
             timer_ = this->create_wall_timer(
                 std::chrono::milliseconds(100), std::bind(&FollowNode::controlLoop, this)
             );
+            action_server_ = rclcpp_action::create_server<inrof2025_ros_type::action::Follow>(
+                this,
+                "follow",
+                std::bind(&FollowNode::handleGoal, this, std::placeholders::_1, std::placeholders::_2),
+                std::bind(&FollowNode::handleCancel, this, std::placeholders::_1),
+                std::bind(&FollowNode::handleAccepted, this, std::placeholders::_1)
+            );
         }
     private:
+        // action server callback
+        rclcpp_action::GoalResponse handleGoal(
+            const rclcpp_action::GoalUUID &,
+            std::shared_ptr<const inrof2025_ros_type::action::Follow::Goal> goal
+        ) {
+            if (!goal_handle_) {
+                RCLCPP_INFO(this->get_logger(), "Catch!!!!");
+                return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+            } else {
+                return rclcpp_action::GoalResponse::REJECT;
+            }
+        }
+
+        rclcpp_action::CancelResponse handleCancel(
+            const std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Follow>> goal_handle
+        ) {
+            goal_handle_.reset();
+            return rclcpp_action::CancelResponse::ACCEPT;
+        }
+
+        void handleAccepted(
+            const std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Follow>> goal_handle
+        ) {
+            goal_handle_ = goal_handle;
+        }
+
         void pathCallback(nav_msgs::msg::Path msgs) {
             // std::lock_guard<std::mutex> lock(mutex_);
             path_ = msgs.poses;
@@ -46,7 +81,10 @@ class FollowNode: public rclcpp::Node {
             // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose_.x, pose_.y);
         }
         void controlLoop() {
-            return;
+            if (!goal_handle_) {
+                // publishZero();
+                return;
+            }
             // std::lock_guard<std::mutex> lock(mutex_);
             if (path_.empty()) {
                 // publishZero();
@@ -99,11 +137,21 @@ class FollowNode: public rclcpp::Node {
             // RCLCPP_INFO(this->get_logger(), "%.4f", goal_dist);
             if (goal_dist < 0.1) {
                 publishZero();
+                auto result_msg = std::make_shared<inrof2025_ros_type::action::Follow::Result>();
+                result_msg->success = true;
+                goal_handle_->succeed(result_msg);
             } else {
                 geometry_msgs::msg::Twist cmd;
                 cmd.linear.x  = linear;
                 cmd.angular.z = angular;
                 cmd_pub_->publish(cmd);
+
+                // feedback
+                auto feedback_msg = std::make_shared<inrof2025_ros_type::action::Follow::Feedback>();
+                feedback_msg->x = pose_.x;
+                feedback_msg->y = pose_.y;
+                feedback_msg->theta = pose_.theta;
+                goal_handle_ -> publish_feedback(feedback_msg);
             }
             // geometry_msgs::msg::Twist cmd;
             // cmd.linear.x  = linear;
@@ -137,7 +185,11 @@ class FollowNode: public rclcpp::Node {
         std::vector<geometry_msgs::msg::PoseStamped> path_;
         std::mutex mutex_;
         geometry_msgs::msg::Pose2D pose_;
-        int current_waypoint_index_;        
+        int current_waypoint_index_;    
+
+        // action server
+        rclcpp_action::Server<inrof2025_ros_type::action::Follow>::SharedPtr action_server_;
+        std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Follow>> goal_handle_;
 };
 
 int main(int argc, char *argv[]) {

@@ -8,9 +8,10 @@ int main(int argc, char* argv[]) {
     rclcpp::init(argc, argv);
 
     ros_node = std::make_shared<BTNode>();
-    
+
     BehaviorTreeFactory factory;
     factory.registerNodeType<GenerateRoute>("generate_route");
+    factory.registerNodeType<FollowRoute>("follow_route");
 
     std::string package_path = ament_index_cpp::get_package_share_directory("inrof2025_ros");
     factory.registerBehaviorTreeFromFile(package_path + "/config/main_bt.xml");
