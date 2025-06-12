@@ -21,8 +21,12 @@ class FollowNode: public rclcpp::Node {
                 "route", pathQos, std::bind(&FollowNode::pathCallback, this, std::placeholders::_1)
             );
             rclcpp::QoS odomQos(rclcpp::KeepLast(5));
-            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry> (
-                "odom", odomQos, std::bind(&FollowNode::odomCallback, this, std::placeholders::_1)
+            // odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry> (
+            //     "odom", odomQos, std::bind(&FollowNode::odomCallback, this, std::placeholders::_1)
+            // );
+            rclcpp::QoS poseQos(rclcpp::KeepLast(5));
+            pose_sub_= this->create_subscription<geometry_msgs::msg::Pose2D> (
+                "pose", poseQos, std::bind(&FollowNode::odomCallback, this, std::placeholders::_1)
             );
             cmd_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
             timer_ = this->create_wall_timer(
@@ -35,15 +39,11 @@ class FollowNode: public rclcpp::Node {
             path_ = msgs.poses;
             current_waypoint_index_ = 0;
         }
-        void odomCallback(nav_msgs::msg::Odometry msgs) {
+        void odomCallback(geometry_msgs::msg::Pose2D msgs) {
             // std::lock_guard<std::mutex> lock(mutex_);
-            pose_.x = msgs.pose.pose.position.x;
-            pose_.y = msgs.pose.pose.position.y;
-            auto &q = msgs.pose.pose.orientation;
-            double siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-            double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-            double yaw = std::atan2(siny_cosp, cosy_cosp);
-            pose_.theta = yaw;
+            pose_.x = msgs.x;
+            pose_.y = msgs.y;
+            pose_.theta = msgs.theta;
             // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose_.x, pose_.y);
         }
         void controlLoop() {
@@ -132,6 +132,7 @@ class FollowNode: public rclcpp::Node {
         rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr path_sub_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_pub_;
+        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
         rclcpp::TimerBase::SharedPtr timer_;
         std::vector<geometry_msgs::msg::PoseStamped> path_;
         std::mutex mutex_;

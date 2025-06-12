@@ -132,6 +132,7 @@ namespace mcl {
 
                 pubPath_ = create_publisher<nav_msgs::msg::Path>("trajectory", 10);
                 path_.header.frame_id = "map";
+                pubPose_ = create_publisher<geometry_msgs::msg::Pose2D>("pose", 10);
                 
                 // s_odom_ = create_subscription<nav_msgs::msg::Odometry>(
                 //     "/odom", tmp_qos, std::bind(&MCL::odomCallback, this, std::placeholders::_1)
@@ -572,6 +573,7 @@ namespace mcl {
                 mclPose_.set__x(x);
                 mclPose_.set__y(y);
                 mclPose_.set__theta(theta);
+                pubPose_->publish(mclPose_);
 
                 // TODO: publish odom
                 if (!is_sim_) {
@@ -729,6 +731,8 @@ namespace mcl {
             // print trajectory on rviz
             rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pubPath_;
             nav_msgs::msg::Path path_;
+            
+            rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr pubPose_;
 
             // cmd_velのみから現在のodometryを計算する
             // last_time_に前回差分を取得したときの時刻
