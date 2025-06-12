@@ -62,11 +62,13 @@ namespace mcl {
                 this->declare_parameter<std::float_t>("initial_x", 0.25);
                 this->declare_parameter<std::float_t>("initial_y", 0.25);
                 this->declare_parameter<std::float_t>("initial_theta", M_PI/2);
+                this->declare_parameter<std::float_t>("resampleThreshold", 0.5);
                 
                 particleNum_ = this->get_parameter("particleNum").as_int();
                 double initial_x = this->get_parameter("initial_x").as_double();
                 double initial_y = this->get_parameter("initial_y").as_double();
                 double initial_theta = this->get_parameter("initial_theta").as_double();
+                this->resampleThreshold_ = this->get_parameter("resampleThreshold").as_double();
                 particles_.resize(particleNum_);
                 pro_.resize(particleNum_);
 
@@ -276,6 +278,7 @@ namespace mcl {
                 printParticlesMakerOnRviz2();
                 caculateMeasurementModel(*scan_); // TODO: ポーリングする（この方法でもあたいが変更されることはなさそうだけど）
                 estimatePose();
+                resampleParticles();
                 printTrajectoryOnRviz2();
                 // publishScanEndpoints();
                 // TODO: printTrajectory
@@ -593,7 +596,32 @@ namespace mcl {
                     tf_broadcaster_->sendTransform(tf_msg);
                 }
 
-                RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", x, y, theta);
+                // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f", x, y, theta);
+            }
+
+            void resampleParticles(void) {
+                double threshold = ((double)particles_.size()) * resampleThreshold_;
+                if (effectiveSampleSize_ > threshold) return;
+
+                std::vector<double> wBuffer((int)particles_.size());
+                wBuffer[0] = particles_[0].getW();
+                for (size_t i=1; i<particles_.size(); i++ ) {
+                    wBuffer[i] = particles_[i].getW() + wBuffer[i-1];
+                }
+
+                std::vector<Particle> tmpParticles = particles_;
+                double wo = 1.0 / (double)particles_.size();
+                for (size_t i = 0; i < particles_.size(); i++ ) {
+                    double darts = (double)rand() / ((double)RAND_MAX + 1.0);
+                    for (size_t j=0; j<particles_.size(); j++ ) {
+                        if (darts < wBuffer[j]) {
+                            geometry_msgs::msg::Pose2D tmpPos = tmpParticles[j].getPose();
+                            particles_[i].setPose(tmpPos.x, tmpPos.y, tmpPos.theta);
+                            particles_[i].setW(wo);
+                            break;
+                        }
+                    }
+                }
             }
 
             void printParticlesMakerOnRviz2() {
@@ -700,6 +728,7 @@ namespace mcl {
             std::vector<probability> pro_;
 
             std::double_t effectiveSampleSize_;
+            std::double_t resampleThreshold_;
 
             // model for mesurement
             mcl::MeasurementModel measurementModel_;

@@ -76,7 +76,7 @@ class FollowNode: public rclcpp::Node {
                 }
             }
 
-            RCLCPP_INFO(this->get_logger(), "%d", target_index);
+            // RCLCPP_INFO(this->get_logger(), "%d %.4f %.4f", target_index, pose_.x, pose_.y);
 
             double tx = path_[target_index].pose.position.x - pose_.x;
             double ty = path_[target_index].pose.position.y - pose_.y;

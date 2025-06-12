@@ -161,7 +161,13 @@ def generate_launch_description():
     follow_node = Node(
         package="inrof2025_ros",
         executable="follow_node",
-        output="screen"
+        output="screen",
+        parameters=[{
+            "max_linear_speed": 0.15,
+            "max_angular_speed": 0.4,
+            "lookahead_distance": 0.20,
+            "resampleThreshold": 0.10,
+        }]
     )
 
     bt_node = Node (
@@ -192,7 +198,7 @@ def generate_launch_description():
         map_server_cmd,
         start_lifecycle_manager_cmd,
         static_from_map_to_odom,
-        # mcl_node,
+        mcl_node,
         joy_node,
         joy2Vel_node,
         vel_feedback_node,
