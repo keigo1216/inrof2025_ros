@@ -40,8 +40,8 @@ namespace path {
 
                 // initialize subscriber
                 rclcpp::QoS sOdomQos(rclcpp::KeepLast(10));
-                subOdom_ = this->create_subscription<nav_msgs::msg::Odometry>(
-                    "/odom", sOdomQos, std::bind(&PathGenerator::odomCallback, this, std::placeholders::_1)
+                subOdom_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
+                    "pose", sOdomQos, std::bind(&PathGenerator::odomCallback, this, std::placeholders::_1)
                 );
 
                 // initialize service server
@@ -72,10 +72,10 @@ namespace path {
             }
         };
 
-        void odomCallback(nav_msgs::msg::Odometry::SharedPtr msgs) {
+        void odomCallback(geometry_msgs::msg::Pose2D msgs) {
             // TODO lock
-            curOdom_.x = msgs->pose.pose.position.x;
-            curOdom_.y = msgs->pose.pose.position.y;
+            curOdom_.x = msgs.x;
+            curOdom_.y = msgs.y;
             curOdom_.theta = 0.0; // null ok
         }
 
@@ -268,7 +268,7 @@ namespace path {
         cv::Mat mapImg_;
         cv::Mat distField_;
         rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pubPath_;
-        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subOdom_;
+        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr subOdom_;
         geometry_msgs::msg::Pose2D curOdom_;
         geometry_msgs::msg::Pose2D goalOdom_;
 
