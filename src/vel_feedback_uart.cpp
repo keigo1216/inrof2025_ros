@@ -4,6 +4,7 @@
 #include <termios.h>
 #include <error.h>
 #include <geometry_msgs/msg/twist.hpp>
+#include <std_msgs/msg/bool.hpp>
 
 namespace raspi {
     typedef union {
@@ -20,20 +21,21 @@ namespace raspi {
     class CmdVel: public rclcpp::Node {
         public:
             explicit CmdVel(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("cmd_vel_feedback", options) {
-                fd_ = open_serial("/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.4:1.2");
+                fd_vel_ = open_serial("/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.4:1.2");
+
                 r_ = 0.14;
-                rclcpp::QoS feedbackQ(rclcpp::KeepLast(10));
+                auto feedbackQ = rclcpp::QoS(rclcpp::KeepLast(10));
                 pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_feedback", feedbackQ);
                 receive_timer_ = this->create_wall_timer(
-                    std::chrono::microseconds(10), std::bind(&CmdVel::receive_callback, this)
+                    std::chrono::microseconds(10), std::bind(&CmdVel::receive_vel_callback, this)
                 );
                 rclcpp::QoS sendQ(rclcpp::KeepLast(10));
                 sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
-                    "/cmd_vel", sendQ, std::bind(&CmdVel::send, this, std::placeholders::_1)
+                    "/cmd_vel", sendQ, std::bind(&CmdVel::sendVel, this, std::placeholders::_1)
                 );
             }
         private:
-            void send(geometry_msgs::msg::Twist::SharedPtr msg) {
+            void sendVel(geometry_msgs::msg::Twist::SharedPtr msg) {
                 U32Bytes u32_bytes[3];
                 uint8_t buf[14];
                 memset(buf, 0x00, sizeof(buf));
@@ -57,11 +59,11 @@ namespace raspi {
                 buf[12] = '\r';
                 buf[13] = '\n';
 
-                ::write(fd_, buf, 14);
+                ::write(fd_vel_, buf, 14);
             }
-            void receive_callback() {
+            void receive_vel_callback() {
                 uint8_t tmp[256];
-                ssize_t n = read(fd_, tmp, sizeof(tmp));
+                ssize_t n = read(fd_vel_, tmp, sizeof(tmp));
                 static constexpr uint8_t DELTM[] = {'\r', '\n'};
                 
                 if (n > 0) {
@@ -194,7 +196,7 @@ namespace raspi {
                 return twist;
             }
 
-            int fd_;
+            int fd_vel_;
             float r_;
             std::vector<uint8_t> recev_buffer_;
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_;

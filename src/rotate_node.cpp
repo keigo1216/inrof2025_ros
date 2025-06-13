@@ -30,6 +30,9 @@ class RotateNode: public rclcpp::Node {
             this->slow_speed_   = 0.2;
             this->accel_angle_  = M_PI/10;
             this->stop_angle_   = M_PI/90;
+
+            RCLCPP_INFO(this->get_logger(), "fgpui34wp9tfgjopiarejgoiqa34uwhioahjfgi3arkehagvjaekrngvklresjgers"); 
+            RCLCPP_INFO(this->get_logger(), "Success intialize rotate_node");
         }
 
         // action server callback

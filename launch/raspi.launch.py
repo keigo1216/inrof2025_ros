@@ -126,8 +126,8 @@ def generate_launch_description():
             "initial_x": x,
             "initial_y": y,
             "initial_theta": theata,
-            "odomNoise1": 3.0,
-            "odomNoise3": 3.0,
+            "odomNoise1": 4.0,
+            "odomNoise3": 4.0,
         }],
     )
 
@@ -148,6 +148,12 @@ def generate_launch_description():
     vel_feedback_node = Node(
         package="inrof2025_ros",
         executable="vel_feedback_uart",
+        output="screen"
+    )
+
+    vacume_node = Node(
+        package="inrof2025_ros",
+        executable="vacume_uart",
         output="screen"
     )
 
@@ -199,6 +205,7 @@ def generate_launch_description():
         static_ldlidar_tf,
         gen_path,
         follow_node,
+        vacume_node,
         bt_node,
         rotate_node,
         # static_from_odom_to_basefootprint
