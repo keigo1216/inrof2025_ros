@@ -20,8 +20,7 @@ namespace raspi {
     class CmdVel: public rclcpp::Node {
         public:
             explicit CmdVel(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("cmd_vel_feedback", options) {
-                fd0_ = open_serial("/dev/ttyACM0");
-                fd1_ = open_serial("/dev/ttyACM1");
+                fd_ = open_serial("/dev/ttyACM0");
                 r_ = 0.14;
                 rclcpp::QoS feedbackQ(rclcpp::KeepLast(10));
                 pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_feedback", feedbackQ);
@@ -58,13 +57,11 @@ namespace raspi {
                 buf[12] = '\r';
                 buf[13] = '\n';
 
-                ::write(fd0_, buf, 14);
-                ::write(fd1_, buf, 14);
+                ::write(fd_, buf, 14);
             }
             void receive_callback() {
                 uint8_t tmp[256];
-                ssize_t n = read(fd0_, tmp, sizeof(tmp));
-                ssize_t n = read(fd1_, tmp, sizeof(tmp));
+                ssize_t n = read(fd_, tmp, sizeof(tmp));
                 static constexpr uint8_t DELTM[] = {'\r', '\n'};
                 
                 if (n > 0) {
@@ -197,8 +194,7 @@ namespace raspi {
                 return twist;
             }
 
-            int fd0_;
-            int fd1_;
+            int fd_;
             float r_;
             std::vector<uint8_t> recev_buffer_;
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_;
