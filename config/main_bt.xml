@@ -4,10 +4,12 @@
   <BehaviorTree ID="MainBT">
     <Sequence>
       <Sequence>
+        <vacume_on on="1"/>
         <generate_route x="0.3"
                         y="2.2"/>
         <follow_route/>
         <rotate theta="3.14"/>
+        <vacume_on on="0"/>
         <rotate theta="0"/>
       </Sequence>
       <KeepRunningUntilFailure>
@@ -38,6 +40,10 @@
     <Action ID="rotate"
             editable="true">
       <input_port name="theta"/>
+    </Action>
+    <Action ID="vacume_on"
+            editable="true">
+      <input_port name="on"/>
     </Action>
   </TreeNodesModel>
 
