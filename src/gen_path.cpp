@@ -2,23 +2,54 @@
 #include <yaml-cpp/yaml.h>
 #include <opencv2/opencv.hpp>
 #include <nav_msgs/msg/path.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <geometry_msgs/msg/pose2_d.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <inrof2025_ros_type/srv/gen_route.hpp>
 
 namespace path {
     class PathGenerator: public rclcpp::Node {
         public:
             explicit PathGenerator(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("path_generator", options) {
+                // TODO: get from launch file
+                this->declare_parameter<std::float_t>("initial_x", 0.25);
+                this->declare_parameter<std::float_t>("initial_y", 0.25);
+                this->declare_parameter<std::float_t>("initial_theta", M_PI/2);
+
+                double initial_x = this->get_parameter("initial_x").as_double();
+                double initial_y = this->get_parameter("initial_y").as_double();
+                double initial_theta = this->get_parameter("initial_theta").as_double();
+
+                this->curOdom_.x = initial_x;
+                this->curOdom_.y = initial_y;
+                this->curOdom_.theta = initial_theta;
+
                 this->mapResolution_ = 0.01;
                 this->mapWidth_ = 182;
                 this->mapHeight_ = 232;
                 this->mapDir_ = "src/inrof2025_ros/map/";
 
-                pubPath_ = create_publisher<nav_msgs::msg::Path>("route", 10);
-
                 readMap();
 
-                // TODO: subscriber
-                // timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&PathGenerator::generator, this));
-                generator();
+                // initialize publisher
+                rclcpp::QoS pathQos = rclcpp::QoS(rclcpp::KeepLast(10))
+                                  .reliable()
+                                  .transient_local();
+                pubPath_ = create_publisher<nav_msgs::msg::Path>("route", pathQos);
+
+
+                // initialize subscriber
+                rclcpp::QoS sOdomQos(rclcpp::KeepLast(10));
+                subOdom_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
+                    "pose", sOdomQos, std::bind(&PathGenerator::odomCallback, this, std::placeholders::_1)
+                );
+
+                // initialize service server
+                srvOdom_= this->create_service<inrof2025_ros_type::srv::GenRoute>(
+                    "generate_route", std::bind(&PathGenerator::poseCallback, this, std::placeholders::_1, std::placeholders::_2)
+                );
+                
+                RCLCPP_INFO(this->get_logger(), "Success initialze");
             }
         private:
         struct mapNode {
@@ -41,11 +72,40 @@ namespace path {
             }
         };
 
+        void odomCallback(geometry_msgs::msg::Pose2D msgs) {
+            // TODO lock
+            curOdom_.x = msgs.x;
+            curOdom_.y = msgs.y;
+            curOdom_.theta = 0.0; // null ok
+        }
+
+        // void poseCallback(inrof2025_ros_type::srv::GenRoute srvs) {
+        //     RCLCPP_INFO(this->get_logger(), "jfoejrifojerifjiorejfoierjfierjfojer");
+        //     // TODO lock
+        //     goalOdom_.x = srvs->x;
+        //     goalOdom_.y = srvs->y;
+        //     goalOdom_.theta = 0.0; // null ok
+
+        //     generator();
+        // }
+
+        void poseCallback(
+            const std::shared_ptr<inrof2025_ros_type::srv::GenRoute::Request> request,
+            const std::shared_ptr<inrof2025_ros_type::srv::GenRoute::Response> response
+        ) {
+            RCLCPP_INFO(this->get_logger(), "%.4f %.4f", request->x, request->y);
+            goalOdom_.x = request->x;
+            goalOdom_.y = request->y;
+            goalOdom_.theta = 0.0;
+
+            generator();
+        }
+
         void generator() {
-            double sx = 0.25;
-            double sy = 0.25;
-            double gx = 1.30;
-            double gy = 0.70;
+            double sx = curOdom_.x;
+            double sy = curOdom_.y;
+            double gx = goalOdom_.x;
+            double gy = goalOdom_.y;
 
             std::priority_queue<Cell, std::vector<Cell>, std::greater<Cell>> q;
             std::vector<std::vector<double>> distances(
@@ -113,7 +173,7 @@ namespace path {
                 pose.pose.orientation.w = 1.0;
 
 
-                // RCLCPP_INFO(this->get_logger(), "%d %d %.4f %.4f", gr, gc, pose.pose.position.x, pose.pose.position.y);
+                // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose.pose.position.x, pose.pose.position.y);
                 
                 pathMsg.poses.push_back(std::move(pose));
             }
@@ -208,7 +268,12 @@ namespace path {
         cv::Mat mapImg_;
         cv::Mat distField_;
         rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pubPath_;
-        rclcpp::TimerBase::SharedPtr timer_;
+        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr subOdom_;
+        geometry_msgs::msg::Pose2D curOdom_;
+        geometry_msgs::msg::Pose2D goalOdom_;
+
+        // connect to behaivorTree
+        rclcpp::Service<inrof2025_ros_type::srv::GenRoute>::SharedPtr srvOdom_;
     };
 }
 

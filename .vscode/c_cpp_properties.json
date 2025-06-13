@@ -8,6 +8,7 @@
       "includePath": [
         "/opt/ros/humble/include/**",
         "/home/ros2/ros_ws/src/inrof2025_ros/include/**",
+        "/home/keigo/ros_ws/install/inrof2025_ros_type/include/**",
         "/usr/include/**"
       ],
       "name": "ROS",
