@@ -64,8 +64,6 @@ class RotateNode: public rclcpp::Node {
             double abs_err = std::abs(err);
             double speed_cmd = 0.0;
 
-            // RCLCPP_INFO(this->get_logger(), "%.4f %.4f",targetTheta_, pose_.theta);
-
             if (abs_err > accel_angle_) {
                 // まだ十分遠い → 最大速度
                 speed_cmd = max_speed_;
@@ -76,6 +74,11 @@ class RotateNode: public rclcpp::Node {
                 // 目標到達
                 auto result = std::make_shared<inrof2025_ros_type::action::Rotate::Result>();
                 result->success = true;
+
+                geometry_msgs::msg::Twist cmd;
+                cmd.angular.z = 0.0;
+                velPub_->publish(cmd);
+
                 goal_handle_->succeed(result);
                 goal_handle_.reset();
                 return;
@@ -84,7 +87,6 @@ class RotateNode: public rclcpp::Node {
             // 方向だけ err の符号で制御
             geometry_msgs::msg::Twist cmd;
             cmd.angular.z = (err > 0 ? +1 : -1) * speed_cmd;
-            // RCLCPP_INFO(this->get_logger(), "%lf", cmd.angular.z);
 
             velPub_->publish(cmd);
 

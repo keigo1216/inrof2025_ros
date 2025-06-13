@@ -72,14 +72,14 @@ namespace ActionNodes {
             Rotate(const std::string& name, const NodeConfig& config) : StatefulActionNode(name, config){ }
 
             static PortsList providedPorts() {
-                return { InputPort<int>("theta") };
+                return { InputPort<double>("theta") };
             }
 
             NodeStatus onStart() override {
                 std::cout << "call SampleNode" << std::endl;
                 
                 // InputPortの値を受け取る
-                Expected<double> msg = getInput<int>("theta");
+                Expected<double> msg = getInput<double>("theta");
                 if (!msg) { // Inputの値が適切でないときの処理
                     throw BT::RuntimeError("missing required input [sample_input]: ", msg.error() );
                 }
