@@ -5,8 +5,10 @@
     <Sequence>
       <Sequence>
         <vacume_on on="1"/>
-        <generate_route x="0.3"
-                        y="2.2"/>
+        <Delay delay_msec="5000">
+          <generate_route x="0.3"
+                          y="2.2"/>
+        </Delay>
         <follow_route/>
         <rotate theta="3.14"/>
         <vacume_on on="0"/>
