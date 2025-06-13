@@ -16,9 +16,7 @@
                           y="1.8"/>
           <follow_route/>
           <rotate theta="-1.57"/>
-          <Delay delay_msec="5000">
-            <rotate theta="1.57"/>
-          </Delay>
+          <rotate theta="1.57"/>
           <generate_route x="0.3"
                           y="2.0"/>
           <follow_route/>
