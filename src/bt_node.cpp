@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
     factory.registerNodeType<FollowRoute>("follow_route");
     factory.registerNodeType<Rotate>("rotate");
     factory.registerNodeType<VacumeOn>("vacume_on");
+    factory.registerNodeType<BallDetact>("ball_detect");
 
     std::string package_path = ament_index_cpp::get_package_share_directory("inrof2025_ros");
     factory.registerBehaviorTreeFromFile(package_path + "/config/main_bt.xml");

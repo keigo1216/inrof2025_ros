@@ -4,6 +4,7 @@
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <inrof2025_ros_type/srv/gen_route.hpp>
 #include <inrof2025_ros_type/srv/vacume.hpp>
+#include <inrof2025_ros_type/srv/ball_pose.hpp>
 #include <inrof2025_ros_type/action/follow.hpp>
 #include <inrof2025_ros_type/action/rotate.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -33,6 +34,15 @@ class BTNode: public rclcpp::Node {
                 std::cout << "srvVacume not available" << std::endl;
             }
             std::cout << "srvVacume service available" << std::endl;
+
+            srvBall_ = this->create_client<inrof2025_ros_type::srv::BallPose> ("ball_pose");
+            while(!srvBall_->wait_for_service(1s)) {
+                if (!rclcpp::ok()) {
+                    break;
+                }
+                std::cout << "srvBall_ not available" << std::endl;
+            }
+            std::cout << "srvBall_ service available" << std::endl;
 
             actFollow_ = rclcpp_action::create_client<inrof2025_ros_type::action::Follow> (this, "follow");
             while (!actFollow_->wait_for_action_server(1s))
@@ -66,6 +76,24 @@ class BTNode: public rclcpp::Node {
 
         bool isRuning() {
             return isRun_;
+        }
+
+        void ball_detect(double *x, double *y) {
+            auto request = std::make_shared<inrof2025_ros_type::srv::BallPose::Request>();
+            auto result_future = srvBall_->async_send_request(request);
+
+            if (rclcpp::spin_until_future_complete(
+                    this->get_node_base_interface(),
+                    result_future,
+                    std::chrono::seconds(1))
+                == rclcpp::FutureReturnCode::SUCCESS)
+            {
+                auto response = result_future.get();
+                *x = response->x;
+                *y = response->y;
+            } else {
+
+            }
         }
 
         void send_vacume_on(bool on) {
@@ -145,6 +173,7 @@ class BTNode: public rclcpp::Node {
         // rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr pubGenRoute_;
         rclcpp::Client<inrof2025_ros_type::srv::GenRoute>::SharedPtr srvGenRoute_;
         rclcpp::Client<inrof2025_ros_type::srv::Vacume>::SharedPtr srvVacume_;
+        rclcpp::Client<inrof2025_ros_type::srv::BallPose>::SharedPtr srvBall_;
         rclcpp_action::Client<inrof2025_ros_type::action::Follow>::SharedPtr actFollow_;
         rclcpp_action::ClientGoalHandle<inrof2025_ros_type::action::Follow>::SharedPtr currentFollow_;
         rclcpp_action::Client<inrof2025_ros_type::action::Rotate>::SharedPtr actRotate_;

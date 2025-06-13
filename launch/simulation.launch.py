@@ -182,6 +182,12 @@ def generate_launch_description():
         output="screen",
     )
 
+    vacume_node = Node(
+        package="inrof2025_ros",
+        executable="vacume_uart",
+        output="screen"
+    )
+
 
     return LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
@@ -212,5 +218,6 @@ def generate_launch_description():
         gen_path,
         follow_node,
         rotate_node,
-        bt_node
+        bt_node,
+        vacume_node
     ])

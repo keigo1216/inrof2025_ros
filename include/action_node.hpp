@@ -37,6 +37,30 @@ namespace ActionNodes {
         private:
     };
 
+    class BallDetact: public SyncActionNode {
+        public:
+            BallDetact(const std::string& name, const NodeConfig& config): SyncActionNode(name, config) {};
+
+            // port info
+            static PortsList providedPorts() {
+                return {
+                    OutputPort<double>("x"),
+                    OutputPort<double>("y")
+                };
+            }
+
+            NodeStatus tick() override {
+                double x, y;
+                ros_node->ball_detect(&x, &y);
+
+                setOutput("x", x);
+                setOutput("y", y);
+
+                return NodeStatus::SUCCESS;
+            }
+        private:
+    };
+
     class GenerateRoute: public SyncActionNode {
         public:
             GenerateRoute(const std::string& name, const NodeConfig& config): SyncActionNode(name, config) {};

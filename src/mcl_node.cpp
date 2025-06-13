@@ -22,6 +22,7 @@
 #include <laser_geometry/laser_geometry.hpp>
 #include <cmath>
 #include <cstdlib>
+#include <inrof2025_ros_type/srv/ball_pose.hpp>
 
 using namespace std::chrono_literals; 
 
@@ -143,6 +144,9 @@ namespace mcl {
                 pubPath_ = create_publisher<nav_msgs::msg::Path>("trajectory", 10);
                 path_.header.frame_id = "map";
                 pubPose_ = create_publisher<geometry_msgs::msg::Pose2D>("pose", 10);
+                srvBallPose_ = this->create_service<inrof2025_ros_type::srv::BallPose>(
+                    "ball_pose", std::bind(&MCL::poseCallback, this, std::placeholders::_1, std::placeholders::_2)
+                );
                 
                 // s_odom_ = create_subscription<nav_msgs::msg::Odometry>(
                 //     "/odom", tmp_qos, std::bind(&MCL::odomCallback, this, std::placeholders::_1)
@@ -461,53 +465,17 @@ namespace mcl {
                         p_vector.push_back(zRand_*pRand);
                     }
 
-                    // 間違っていそうな箇所
-                    // RCLCPP_INFO(this->get_logger(), "%lf", scan.angle_min);
-                    std::double_t a = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
-                    // TODO: ここの計算はだいぶ簡略化できそうなので，時間があればやる
-                    
                     std::double_t theta_lidar;
                     if (is_sim_) {
                         theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment;
                     } else {
                         theta_lidar = scan.angle_min + ((std::double_t)(i))*scan.angle_increment - 3.0*M_PI/2.0;
                     }
-                    // if (theta_lidar < -M_PI/2.0+M_PI/10.0 || theta_lidar < M_PI/2.0-M_PI/10.0) continue;
-                    std::double_t x_lidar = r*cos(theta_lidar) + 0.033 + 0.005;
-                    std::double_t y_lidar = r*sin(theta_lidar) + 0.013 - 0.013;
-                    
-                    // geometry_msgs::msg::Quaternion &q1 = odom_->pose.pose.orientation;
-                    // double siny_cosp_1 = 2.0 * (q1.w * q1.z + q1.x * q1.y);
-                    // double cosy_cosp_1 = 1.0 - 2.0 * (q1.y * q1.y + q1.z * q1.z);
-                    // double theta = std::atan2(siny_cosp_1, cosy_cosp_1);
-                    std::double_t x = x_lidar*cos(pose.theta) - y_lidar*sin(pose.theta) + pose.x;
-                    std::double_t y = x_lidar*sin(pose.theta) + y_lidar*cos(pose.theta) + pose.y;
 
-                    // x = r*cos(theta_lidar);
-                    // y = r*sin(theta_lidar);
-
-                    // debug
-                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", lidar_x, *it_x);
-                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f %.4f %.4f", odom_->pose.pose.position.x, pose.x, odom_->pose.pose.position.y, pose.y, theta, pose.theta);
-                    // RCLCPP_INFO(this->get_logger(), "%.4f %.4f %.4f %.4f", x, *it_x, y, *it_y);
-                    //
-
-
-                    // lidar link
-                    // baselink
-                    // ...
-                    // どこまえあっているのかを確認する。
-
-                    //
-                        geometry_msgs::msg::Point pt;
-                        pt.x = x;
-                        pt.y = y;
-                        pt.z = 0.039;
-                    //
-
+                    double x_odom, y_odom;
                     int u, v;
-                    xy2uv(x, y, &u, &v);
-                    
+                    lidarpose2uv(r, theta_lidar, pose, &x_odom, &y_odom, &u, &v);
+
                     // TODO: isInMap
                     if (0 <= u && u < mapWidth_ && 0 <= v && v < mapHeight_) {
                         // TODO: 尤度場モデルからdをもってくる
@@ -523,7 +491,7 @@ namespace mcl {
                         // RCLCPP_INFO(this->get_logger(), "%d %d %lf %lf", u, v, d, log(p));
                         
                         //
-                        scan_endpoints_.push_back(pt);
+                        // scan_endpoints_.push_back(pt);
                         // particleMarker_->publish(cloud_tf);
                         //
                     } else {
@@ -537,6 +505,54 @@ namespace mcl {
                 // RCLCPP_INFO(this->get_logger(), "####################################");
                 // publishScanEndpoints();
                 return p_vector;
+            }
+
+            void lidarpose2uv(double range, double theta, geometry_msgs::msg::Pose2D pose, double *x_odom, double *y_odom, int *u, int *v) {
+                std::double_t x_lidar = range*cos(theta) + 0.033 + 0.005;
+                std::double_t y_lidar = range*sin(theta) + 0.013 - 0.013;
+                std::double_t x = x_lidar*cos(pose.theta) - y_lidar*sin(pose.theta) + pose.x;
+                std::double_t y = x_lidar*sin(pose.theta) + y_lidar*cos(pose.theta) + pose.y;
+
+                *x_odom = x;
+                *y_odom = y;
+
+                xy2uv(x, y, u, v);
+            }
+
+            void poseCallback (
+                const std::shared_ptr<inrof2025_ros_type::srv::BallPose::Request> request,
+                const std::shared_ptr<inrof2025_ros_type::srv::BallPose::Response> response
+            ) {
+                double ball_min_r = INFINITY;
+                double x;
+                double y;
+
+                for (std::size_t i = 0; i < scan_->ranges.size(); i+=scanStep_) {
+                    std::double_t r = scan_->ranges[i];
+                    if (std::isnan(r) || r < scan_->range_min || scan_->range_max < r) continue;
+
+                    std::double_t theta_lidar;
+                    if (is_sim_) {
+                        theta_lidar = scan_->angle_min + ((std::double_t)(i))*scan_->angle_increment;
+                    } else {
+                        theta_lidar = scan_->angle_min + ((std::double_t)(i))*scan_->angle_increment - 3.0*M_PI/2.0;
+                    }
+
+                    int u, v;
+                    double x_odom, y_odom;
+                    lidarpose2uv(r, theta_lidar, mclPose_, &x_odom, &y_odom, &u, &v);
+
+                    std::double_t d = (std::double_t)distField_.at<std::double_t>(v, u);
+                    if (d > 0.10 && r < ball_min_r) {
+                        ball_min_r = d;
+
+                        x = x_odom;
+                        y = y_odom;
+                    }
+                }
+
+                response->x = x;
+                response->y = y;
             }
 
             void publishScanEndpoints()
@@ -778,6 +794,9 @@ namespace mcl {
             rclcpp::Time last_timestamp_;
             geometry_msgs::msg::Pose2D velOdom_;
             geometry_msgs::msg::Pose2D last_odom_;
+
+            // ball
+            rclcpp::Service<inrof2025_ros_type::srv::BallPose>::SharedPtr srvBallPose_;
 
             // TODO: delete
             rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr s_odom_;

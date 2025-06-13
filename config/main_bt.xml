@@ -20,7 +20,15 @@
                           y="1.8"/>
           <follow_route/>
           <rotate theta="-1.57"/>
+          <ball_detect x="{x}"
+                       y="{y}"/>
+          <generate_route x="1.34"
+                          y="1.0"/>
+          <follow_route/>
           <rotate theta="1.57"/>
+          <generate_route x="1.34"
+                          y="1.8"/>
+          <follow_route/>
           <generate_route x="0.3"
                           y="2.0"/>
           <follow_route/>
@@ -32,6 +40,11 @@
 
   <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
+    <Action ID="ball_detect"
+            editable="true">
+      <output_port name="x"/>
+      <output_port name="y"/>
+    </Action>
     <Action ID="follow_route"
             editable="true"/>
     <Action ID="generate_route"
