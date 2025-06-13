@@ -5,6 +5,7 @@
 #include <error.h>
 #include <geometry_msgs/msg/twist.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <inrof2025_ros_type/srv/vacume.hpp>
 
 namespace raspi {
     class Vacume: public rclcpp::Node {
@@ -16,8 +17,22 @@ namespace raspi {
                 subVac_ = this->create_subscription<std_msgs::msg::Bool>(
                     "/vac", callbackVacQ, std::bind(&Vacume::sendVac, this, std::placeholders::_1)
                 );
+
+                srvVacume_ = this->create_service<inrof2025_ros_type::srv::Vacume> (
+                    "/srv/vacume",
+                    std::bind(&Vacume::vacumeCallback, this, std::placeholders::_1, std::placeholders::_2)
+                );
             }
         private:
+            void vacumeCallback(
+                const std::shared_ptr<inrof2025_ros_type::srv::Vacume::Request> request,
+                const std::shared_ptr<inrof2025_ros_type::srv::Vacume::Response> response
+            ) {
+                std_msgs::msg::Bool msg;
+                msg.data = request->on;
+
+                sendVac(msg);
+            }
             void sendVac(std_msgs::msg::Bool msg) {
                 uint8_t buf[3];
                 memset(buf, 0x00, sizeof(buf));
@@ -99,6 +114,7 @@ namespace raspi {
             std::vector<uint8_t> recev_buffer_;
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr subVac_;
             rclcpp::TimerBase::SharedPtr receive_timer_;
+            rclcpp::Service<inrof2025_ros_type::srv::Vacume>::SharedPtr srvVacume_;
     };
 }
 

@@ -7,6 +7,36 @@
 using namespace BT;
 
 namespace ActionNodes {
+    class VacumeOn: public SyncActionNode {
+        public:
+            VacumeOn(const std::string& name, const NodeConfig& config): SyncActionNode(name, config) {};
+
+            // port info
+            static PortsList providedPorts() {
+                return {
+                    InputPort<bool> ("on")
+                };
+            }
+
+            NodeStatus tick() override {
+                std::cout << "call generate route" << std::endl;
+
+                Expected<bool> tmp_on = getInput<bool>("on");
+                if (!tmp_on) {
+                    throw BT::RuntimeError("missing required input x: ", tmp_on.error() );
+                }
+
+                double on = tmp_on.value();
+                
+                if (ros_node == nullptr) std::cerr << "null ptr" << std::endl;
+
+                ros_node->send_vacume_on(on);
+
+                return NodeStatus::SUCCESS;
+            }
+        private:
+    };
+
     class GenerateRoute: public SyncActionNode {
         public:
             GenerateRoute(const std::string& name, const NodeConfig& config): SyncActionNode(name, config) {};

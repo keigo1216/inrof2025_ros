@@ -3,6 +3,7 @@
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <inrof2025_ros_type/srv/gen_route.hpp>
+#include <inrof2025_ros_type/srv/vacume.hpp>
 #include <inrof2025_ros_type/action/follow.hpp>
 #include <inrof2025_ros_type/action/rotate.hpp>
 #include <rclcpp_action/rclcpp_action.hpp>
@@ -13,7 +14,7 @@ class BTNode: public rclcpp::Node {
     public:
         explicit BTNode(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("bt_node", options) {
             // create service client
-            srvGenRoute_ = this->create_client<inrof2025_ros_type::srv::GenRoute>("generate_route");
+            srvGenRoute_ = this->create_client<inrof2025_ros_type::srv::GenRoute>("/srv/vacume");
             while (!srvGenRoute_->wait_for_service(1s))
             {
                 if (!rclcpp::ok()) {
@@ -22,6 +23,16 @@ class BTNode: public rclcpp::Node {
                 std::cout << "srvGenRoute not available" << std::endl;
             }
             std::cout << "srvGenRoute service available" << std::endl;
+
+            srvVacume_ = this->create_client<inrof2025_ros_type::srv::Vacume>("/srv/vacume");
+            while (!srvVacume_->wait_for_service(1s))
+            {
+                if (!rclcpp::ok()) {
+                    break;
+                }
+                std::cout << "srvVacume not available" << std::endl;
+            }
+            std::cout << "srvVacume service available" << std::endl;
 
             actFollow_ = rclcpp_action::create_client<inrof2025_ros_type::action::Follow> (this, "follow");
             while (!actFollow_->wait_for_action_server(1s))
@@ -55,6 +66,13 @@ class BTNode: public rclcpp::Node {
 
         bool isRuning() {
             return isRun_;
+        }
+
+        void send_vacume_on(bool on) {
+            auto request = std::make_shared<inrof2025_ros_type::srv::Vacume::Request>();
+            request->on = on;
+
+            srvVacume_->async_send_request(request);
         }
 
         void send_start_follow() {
@@ -126,6 +144,7 @@ class BTNode: public rclcpp::Node {
     private:
         // rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr pubGenRoute_;
         rclcpp::Client<inrof2025_ros_type::srv::GenRoute>::SharedPtr srvGenRoute_;
+        rclcpp::Client<inrof2025_ros_type::srv::Vacume>::SharedPtr srvVacume_;
         rclcpp_action::Client<inrof2025_ros_type::action::Follow>::SharedPtr actFollow_;
         rclcpp_action::ClientGoalHandle<inrof2025_ros_type::action::Follow>::SharedPtr currentFollow_;
         rclcpp_action::Client<inrof2025_ros_type::action::Rotate>::SharedPtr actRotate_;
