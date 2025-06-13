@@ -17,7 +17,7 @@ import math
 
 def generate_launch_description():
     x = 0.25
-    y = 1.0
+    y = 0.25
     z = 0.30
     theata = math.pi / 2
 
