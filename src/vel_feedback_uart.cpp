@@ -20,7 +20,7 @@ namespace raspi {
     class CmdVel: public rclcpp::Node {
         public:
             explicit CmdVel(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("cmd_vel_feedback", options) {
-                fd_ = open_serial("/dev/ttyACM0");
+                fd_ = open_serial("/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.4:1.2");
                 r_ = 0.14;
                 rclcpp::QoS feedbackQ(rclcpp::KeepLast(10));
                 pub_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_feedback", feedbackQ);
