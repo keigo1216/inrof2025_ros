@@ -16,6 +16,11 @@ import xacro
 import math
 
 def generate_launch_description():
+    x = 0.25
+    y = 0.25
+    z = 0.30
+    theata = math.pi / 2
+
     package_dir = get_package_share_directory("inrof2025_ros")
 
     # load robot urdf file
@@ -116,7 +121,16 @@ def generate_launch_description():
     mcl_node = Node(
         package="inrof2025_ros",
         executable="mcl_node",
-        output="screen"
+        output="screen",
+        parameters=[{
+            "initial_x": x,
+            "initial_y": y,
+            "initial_theta": theata,
+            "odomNoise1": 4.0,
+            "odomNoise2": 3.0,
+            "odomNoise3": 4.0,
+            "odomNoise4": 3.0,
+        }],
     )
 
     joy_node = Node(
@@ -139,6 +153,46 @@ def generate_launch_description():
         output="screen"
     )
 
+    vacume_node = Node(
+        package="inrof2025_ros",
+        executable="vacume_uart",
+        output="screen"
+    )
+
+    gen_path = Node(
+        package="inrof2025_ros",
+        executable="gen_path",
+        output="screen",
+        parameters=[{
+            "initial_x": x,
+            "initial_y": y,
+            "initial_theta": theata,
+        }],
+    )
+
+    follow_node = Node(
+        package="inrof2025_ros",
+        executable="follow_node",
+        output="screen",
+        parameters=[{
+            "max_linear_speed": 0.10,
+            "max_angular_speed": 0.5,
+            "lookahead_distance": 0.10,
+        }]
+    )
+
+    rotate_node = Node(
+        package="inrof2025_ros",
+        executable="rotate_node",
+        output="screen",
+    )
+
+    bt_node = Node (
+        package="inrof2025_ros",
+        executable="bt_node",
+        output="screen"
+    )
+
     # cmd_velをキャッチして、uartに流すプログラムが必要
     return LaunchDescription([
         node_robot_state_publisher,
@@ -150,6 +204,11 @@ def generate_launch_description():
         joy2Vel_node,
         vel_feedback_node,
         ldlidar_node,
-        static_ldlidar_tf
+        static_ldlidar_tf,
+        gen_path,
+        follow_node,
+        vacume_node,
+        bt_node,
+        rotate_node,
         # static_from_odom_to_basefootprint
     ])

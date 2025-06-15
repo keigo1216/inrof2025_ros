@@ -3,7 +3,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
-from launch.event_handlers import OnProcessExit
+from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
@@ -149,14 +149,45 @@ def generate_launch_description():
     gen_path = Node(
         package="inrof2025_ros",
         executable="gen_path",
-        output="screen"
+        output="screen",
+        parameters=[{
+            "initial_x": x,
+            "initial_y": y,
+            "initial_theta": theata,
+            "use_sim_time": use_sim_time
+        }],
     )
 
     follow_node = Node(
         package="inrof2025_ros",
         executable="follow_node",
+        output="screen",
+        parameters=[{
+            "max_linear_speed": 0.10,
+            "max_angular_speed": 0.7,
+            "lookahead_distance": 0.20,
+            "resampleThreshold": 0.10,
+        }]
+    )
+
+    bt_node = Node (
+        package="inrof2025_ros",
+        executable="bt_node",
         output="screen"
     )
+
+    rotate_node = Node(
+        package="inrof2025_ros",
+        executable="rotate_node",
+        output="screen",
+    )
+
+    vacume_node = Node(
+        package="inrof2025_ros",
+        executable="vacume_uart",
+        output="screen"
+    )
+
 
     return LaunchDescription([
         SetEnvironmentVariable(name='RCUTILS_COLORIZED_OUTPUT', value='1'),
@@ -180,10 +211,13 @@ def generate_launch_description():
         map_server_cmd,
         start_lifecycle_manager_cmd,
         static_from_map_to_odom,
-        # mcl_node,
+        mcl_node,
         joy_node,
         joy2Vel_node,
         vel_feedback_node,
         gen_path,
-        follow_node
+        follow_node,
+        rotate_node,
+        bt_node,
+        vacume_node
     ])

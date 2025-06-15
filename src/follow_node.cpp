@@ -4,7 +4,9 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <mutex>
-
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <inrof2025_ros_type/action/follow.hpp>
+#include <inrof2025_ros_type/action/rotate.hpp>
 
 class FollowNode: public rclcpp::Node {
     public:
@@ -21,32 +23,69 @@ class FollowNode: public rclcpp::Node {
                 "route", pathQos, std::bind(&FollowNode::pathCallback, this, std::placeholders::_1)
             );
             rclcpp::QoS odomQos(rclcpp::KeepLast(5));
-            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry> (
-                "odom", odomQos, std::bind(&FollowNode::odomCallback, this, std::placeholders::_1)
+            // odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry> (
+            //     "odom", odomQos, std::bind(&FollowNode::odomCallback, this, std::placeholders::_1)
+            // );
+            rclcpp::QoS poseQos(rclcpp::KeepLast(5));
+            pose_sub_= this->create_subscription<geometry_msgs::msg::Pose2D> (
+                "pose", poseQos, std::bind(&FollowNode::odomCallback, this, std::placeholders::_1)
             );
             cmd_pub_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
             timer_ = this->create_wall_timer(
                 std::chrono::milliseconds(100), std::bind(&FollowNode::controlLoop, this)
             );
+            action_server_ = rclcpp_action::create_server<inrof2025_ros_type::action::Follow>(
+                this,
+                "follow",
+                std::bind(&FollowNode::handleGoal, this, std::placeholders::_1, std::placeholders::_2),
+                std::bind(&FollowNode::handleCancel, this, std::placeholders::_1),
+                std::bind(&FollowNode::handleAccepted, this, std::placeholders::_1)
+            );
         }
     private:
+        // action server callback
+        rclcpp_action::GoalResponse handleGoal(
+            const rclcpp_action::GoalUUID &,
+            std::shared_ptr<const inrof2025_ros_type::action::Follow::Goal> goal
+        ) {
+            if (!goal_handle_) {
+                RCLCPP_INFO(this->get_logger(), "Catch!!!!");
+                return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+            } else {
+                return rclcpp_action::GoalResponse::REJECT;
+            }
+        }
+
+        rclcpp_action::CancelResponse handleCancel(
+            const std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Follow>> goal_handle
+        ) {
+            goal_handle_.reset();
+            return rclcpp_action::CancelResponse::ACCEPT;
+        }
+
+        void handleAccepted(
+            const std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Follow>> goal_handle
+        ) {
+            goal_handle_ = goal_handle;
+        }
+
         void pathCallback(nav_msgs::msg::Path msgs) {
             // std::lock_guard<std::mutex> lock(mutex_);
             path_ = msgs.poses;
             current_waypoint_index_ = 0;
         }
-        void odomCallback(nav_msgs::msg::Odometry msgs) {
+        void odomCallback(geometry_msgs::msg::Pose2D msgs) {
             // std::lock_guard<std::mutex> lock(mutex_);
-            pose_.x = msgs.pose.pose.position.x;
-            pose_.y = msgs.pose.pose.position.y;
-            auto &q = msgs.pose.pose.orientation;
-            double siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-            double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-            double yaw = std::atan2(siny_cosp, cosy_cosp);
-            pose_.theta = yaw;
-            RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose_.x, pose_.y);
+            pose_.x = msgs.x;
+            pose_.y = msgs.y;
+            pose_.theta = msgs.theta;
+            // RCLCPP_INFO(this->get_logger(), "%.4f %.4f", pose_.x, pose_.y);
         }
         void controlLoop() {
+            if (!goal_handle_) {
+                // publishZero();
+                return;
+            }
             // std::lock_guard<std::mutex> lock(mutex_);
             if (path_.empty()) {
                 // publishZero();
@@ -76,7 +115,7 @@ class FollowNode: public rclcpp::Node {
                 }
             }
 
-            RCLCPP_INFO(this->get_logger(), "%d", target_index);
+            // RCLCPP_INFO(this->get_logger(), "%d %.4f %.4f", target_index, pose_.x, pose_.y);
 
             double tx = path_[target_index].pose.position.x - pose_.x;
             double ty = path_[target_index].pose.position.y - pose_.y;
@@ -99,11 +138,22 @@ class FollowNode: public rclcpp::Node {
             // RCLCPP_INFO(this->get_logger(), "%.4f", goal_dist);
             if (goal_dist < 0.1) {
                 publishZero();
+                auto result_msg = std::make_shared<inrof2025_ros_type::action::Follow::Result>();
+                result_msg->success = true;
+                goal_handle_->succeed(result_msg);
+                goal_handle_.reset();
             } else {
                 geometry_msgs::msg::Twist cmd;
                 cmd.linear.x  = linear;
                 cmd.angular.z = angular;
                 cmd_pub_->publish(cmd);
+
+                // feedback
+                auto feedback_msg = std::make_shared<inrof2025_ros_type::action::Follow::Feedback>();
+                feedback_msg->x = pose_.x;
+                feedback_msg->y = pose_.y;
+                feedback_msg->theta = pose_.theta;
+                goal_handle_ -> publish_feedback(feedback_msg);
             }
             // geometry_msgs::msg::Twist cmd;
             // cmd.linear.x  = linear;
@@ -132,11 +182,20 @@ class FollowNode: public rclcpp::Node {
         rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr path_sub_;
         rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_pub_;
+        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
         rclcpp::TimerBase::SharedPtr timer_;
         std::vector<geometry_msgs::msg::PoseStamped> path_;
         std::mutex mutex_;
         geometry_msgs::msg::Pose2D pose_;
-        int current_waypoint_index_;
+        int current_waypoint_index_;    
+
+        // action server
+        rclcpp_action::Server<inrof2025_ros_type::action::Follow>::SharedPtr action_server_;
+        std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Follow>> goal_handle_;
+
+        // rotate action server
+        rclcpp_action::Server<inrof2025_ros_type::action::Rotate>::SharedPtr action_rotate_server_;
+        std::shared_ptr<rclcpp_action::ServerGoalHandle<inrof2025_ros_type::action::Rotate>> goal_rotate_handle_;
 };
 
 int main(int argc, char *argv[]) {
