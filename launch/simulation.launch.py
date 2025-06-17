@@ -30,6 +30,11 @@ def generate_launch_description():
         "map",
         "map.yaml"
     )
+    rviz_config_path = os.path.join(
+        package_dir,
+        "config",
+        "default.rviz"
+    )
     print(map_server_config_path)
     lifecycle_nodes = ['map_server']
 
@@ -83,7 +88,8 @@ def generate_launch_description():
         name="rviz2",
         output="log",
         emulate_tty=True,
-        parameters=[{"use_sim_time": use_sim_time}]
+        parameters=[{"use_sim_time": use_sim_time}],
+        arguments=["-d", ""]
     )
 
     # nav2 map_server
