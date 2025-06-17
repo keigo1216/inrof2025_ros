@@ -1,8 +1,30 @@
 # inrof2025_ros
 
+# Hardware
+![robot](images/robot.jpg)
+
+## Component
+- Motor
+- Omuni Wheel
+- Lidar
+- Motor Driver
+- Microcomputer
+- RaspberryPi 4B 8G
+- Color sensor
+
+# Software
+Development was conducted using ROS 2 Humble on a Raspberry Pi. To minimize the use of physical hardware during experimentation, a simulation environment was built in Gazebo, and most of the software was developed within the simulation.
+![robot](images/simulation.png)
+
 # install
 ## enviroment
 - ubuntu22.04 LTS
+
+## computational resources
+### simulation env
+- Corei7 14700F
+- 32GB
+- RTX4070 super
 
 ## ros2 humble install
 [offical install guide](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html)
