@@ -131,7 +131,7 @@ ros2 daemon start
 
 replace `<your workspace directory>` to ros workspace directory. (`/home/keigo/ros_ws`)
 ```bash
-echo 'export GAZEBO_MODEL_PATH=<your workspace directory>/install/inrof2025_ros/share/inrof2025_ros/models/:${GAZEBO_MODEL_PATH}' >> ~/.bashrc
+echo 'export GAZEBO_MODEL_PATH=$HOME/ros_ws/install/inrof2025_ros/share/inrof2025_ros/models/:${GAZEBO_MODEL_PATH}' >> ~/.bashrc
 ```
 
 set shared library path
