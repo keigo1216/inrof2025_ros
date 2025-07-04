@@ -95,7 +95,21 @@ sudo apt install -y python3-colcon-common-extensions
 install BehaviorTree4.8
 ```bash
 sudo apt install libzmq3-dev libboost-dev qtbase5-dev libqt5svg5-dev libzmq3-dev libdw-dev
+cd
+git clone https://github.com/BehaviorTree/BehaviorTree.CPP.git
+cd BehaviorTree.CPP
+mkdir build
+cd build
+cmake ..
+make -j8
+sudo make install
+cd ros_ws
+```
 
+install gazebo (only in simulation)
+```bash
+sudo apt -y install gazebo
+sudo apt install ros-humble-gazebo-*
 ```
 
 # env settings
