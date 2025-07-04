@@ -113,6 +113,14 @@ sudo apt install ros-humble-gazebo-*
 . /usr/share/gazebo/setup.sh
 ```
 
+install inrof2025_ros_type in your workspace
+```bash
+cd ~/ros_ws/src/
+git clone https://github.com/keigo1216/inrof2025_ros_type.git
+cd inrof2025_ros_type
+colcon build --packages-select inrof2025_ros_type
+```
+
 # env settings
 Set `ROS_DOMAIN_ID` for Distributed processing and restart ros2 demon
 ```bash
