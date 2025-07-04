@@ -89,7 +89,7 @@ def generate_launch_description():
         output="log",
         emulate_tty=True,
         parameters=[{"use_sim_time": use_sim_time}],
-        arguments=["-d", ""]
+        arguments=["-d", rviz_config_path]
     )
 
     # nav2 map_server
