@@ -75,16 +75,6 @@ sudo apt install libudev-dev
 cd ~/ros_ws/src/ldrobot-lidar-ros2/scripts/
 ./create_udev_rules.sh
 ```
-```bash
-cd ~/ros_ws/
-rosdep install --from-paths src --ignore-src -r -y
-colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release
-```
-
-install dependency
-```bash
-rosdep install --from-paths src -y --ignore-src
-```
 
 [install colcon](https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Colcon-Tutorial.html)
 
@@ -119,6 +109,12 @@ cd ~/ros_ws/src/
 git clone https://github.com/keigo1216/inrof2025_ros_type.git
 cd inrof2025_ros_type
 colcon build --packages-select inrof2025_ros_type
+```
+
+```bash
+cd ~/ros_ws/
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release
 ```
 
 # env settings
