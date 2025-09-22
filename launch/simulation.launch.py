@@ -190,7 +190,7 @@ def generate_launch_description():
 
     vacume_node = Node(
         package="inrof2025_ros",
-        executable="vacume_uart",
+        executable="dummy_vacume_uart",
         output="screen"
     )
 

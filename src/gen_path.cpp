@@ -177,7 +177,7 @@ namespace path {
                 
                 pathMsg.poses.push_back(std::move(pose));
             }
-
+            
             pubPath_->publish(pathMsg);
         }
 

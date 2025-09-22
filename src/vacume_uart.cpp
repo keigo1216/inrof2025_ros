@@ -10,7 +10,7 @@
 namespace raspi {
     class Vacume: public rclcpp::Node {
         public:
-            explicit Vacume(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("cmd_vel_feedback", options) {
+            explicit Vacume(const rclcpp::NodeOptions & options = rclcpp::NodeOptions()): Node("vacume", options) {
                 fd_vac_ = open_serial("/dev/serial/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.3:1.2");
 
                 rclcpp::QoS callbackVacQ(rclcpp::KeepLast(10));
